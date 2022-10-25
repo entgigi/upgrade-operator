@@ -1,0 +1,19 @@
+domain: entando.org
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: upgrade-operator
+repo: github.com/entgigi/upgrade-operator.git
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: entando.org
+  group: upgrade
+  kind: EntandoUpgrade
+  path: github.com/entgigi/upgrade-operator.git/api/v1alpha1
+  version: v1alpha1
+version: "3"

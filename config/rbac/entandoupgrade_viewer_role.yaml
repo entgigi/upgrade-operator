@@ -1,0 +1,20 @@
+# permissions for end users to view entandoupgrades.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: entandoupgrade-viewer-role
+rules:
+- apiGroups:
+  - upgrade.entando.org
+  resources:
+  - entandoupgrades
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - upgrade.entando.org
+  resources:
+  - entandoupgrades/status
+  verbs:
+  - get

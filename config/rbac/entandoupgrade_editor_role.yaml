@@ -1,0 +1,24 @@
+# permissions for end users to edit entandoupgrades.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: entandoupgrade-editor-role
+rules:
+- apiGroups:
+  - upgrade.entando.org
+  resources:
+  - entandoupgrades
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - upgrade.entando.org
+  resources:
+  - entandoupgrades/status
+  verbs:
+  - get
