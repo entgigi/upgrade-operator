@@ -20,13 +20,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // EntandoUpgradeSpec defines the desired state of EntandoUpgrade
 type EntandoUpgradeSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 
 	// FromVersion is an example field of EntandoUpgrade. Edit entandoupgrade_types.go to remove/update
 	FromVersion string `json:"fromVersion"`
@@ -36,8 +33,8 @@ type EntandoUpgradeSpec struct {
 
 // EntandoUpgradeStatus defines the observed state of EntandoUpgrade
 type EntandoUpgradeStatus struct {
-	Progress string `json:"progress"`
-	Patch    string `json:"patch"`
+	Progress string `json:"progress,omitempty"`
+	Patch    string `json:"patch,omitempty"`
 }
 
 //+kubebuilder:object:root=true

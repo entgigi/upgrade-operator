@@ -54,9 +54,6 @@ spec:
                 type: string
               progress:
                 type: string
-            required:
-            - patch
-            - progress
             type: object
         type: object
     served: true

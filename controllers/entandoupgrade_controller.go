@@ -19,17 +19,17 @@ package controllers
 import (
 	"context"
 
+	upgradev1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	upgradev1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 )
 
 // EntandoUpgradeReconciler reconciles a EntandoUpgrade object
 type EntandoUpgradeReconciler struct {
 	client.Client
+	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
@@ -37,26 +37,43 @@ type EntandoUpgradeReconciler struct {
 //+kubebuilder:rbac:groups=upgrade.entando.org,resources=entandoupgrades/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=upgrade.entando.org,resources=entandoupgrades/finalizers,verbs=update
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the EntandoUpgrade object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *EntandoUpgradeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := r.Log.WithName("Upgrade Controller")
+	log.Info("Start reconciling EntandoUpgrade custom resources")
 
-	// TODO(user): your logic here
+	entandoUpgrade := upgradev1alpha1.EntandoUpgrade{}
+	err := r.Client.Get(ctx, req.NamespacedName, &entandoUpgrade)
+	if err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
+	// FIXME! add start proregss in status EntandoUpgrade cr
+	entandoUpgrade.Status.Progress = "starting updaye"
+	r.updateProgressStatus(ctx, entandoUpgrade)
+	// FIXME! add sleep 1 minutes
+
+	// FIXME! add finished proregss in status EntandoUpgrade cr
+	entandoUpgrade.Status.Progress = "starting updaye"
+	r.updateProgressStatus(ctx, entandoUpgrade)
+
+	log.Info("Reconciled EntandoUpgrade custom resources")
 	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *EntandoUpgradeReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	//log := r.Log.WithName("Upgrade Controller")
 	return ctrl.NewControllerManagedBy(mgr).
+		// FIXME! add filter on create for EntandoUpgrade cr
 		For(&upgradev1alpha1.EntandoUpgrade{}).
 		Complete(r)
+}
+
+func (r *EntandoUpgradeReconciler) updateProgressStatus(ctx context.Context, cr upgradev1alpha1.EntandoUpgrade) {
+	log := r.Log.WithName("Upgrade Controller")
+	err := r.Status().Update(ctx, &cr)
+	if err != nil {
+		log.Error(err, "Unable to update EntandoUpgrade's progress status", "progress", cr.Status.Progress)
+	}
+
 }
