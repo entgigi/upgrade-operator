@@ -51,19 +51,19 @@ func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Check if the Memcached instance is marked to be deleted, which is
+	// Check if the EntandoApp instance is marked to be deleted, which is
 	// indicated by the deletion timestamp being set.
 	isEntandoAppV2MarkedToBeDeleted := entandoAppV2.GetDeletionTimestamp() != nil
 	if isEntandoAppV2MarkedToBeDeleted {
 		if controllerutil.ContainsFinalizer(&entandoAppV2, entandoAppFinalizer) {
-			// Run finalization logic for memcachedFinalizer. If the
+			// Run finalization logic for entandoAppFinalizer. If the
 			// finalization logic fails, don't remove the finalizer so
 			// that we can retry during the next reconciliation.
 			if err := r.finalizeEntandoApp(log, &entandoAppV2); err != nil {
 				return ctrl.Result{}, err
 			}
 
-			// Remove memcachedFinalizer. Once all finalizers have been
+			// Remove entandoAppFinalizer. Once all finalizers have been
 			// removed, the object will be deleted.
 			controllerutil.RemoveFinalizer(&entandoAppV2, entandoAppFinalizer)
 			err := r.Update(ctx, &entandoAppV2)
@@ -127,7 +127,7 @@ func (r *EntandoAppV2Reconciler) updateProgressStatus(ctx context.Context, cr v1
 }
 
 func (r *EntandoAppV2Reconciler) reconcileResources(ctx context.Context, entandoAppV2 v1alpha1.EntandoAppV2) error {
-	//log := r.Log.WithName("Upgrade Controller")
+	log := r.Log.WithName("Upgrade Controller")
 
 	imageManager := common.ImageManager{}
 	images := imageManager.FetchImagesByAppVersion(entandoAppV2.Spec.Version)
@@ -139,6 +139,10 @@ func (r *EntandoAppV2Reconciler) reconcileResources(ctx context.Context, entando
 		images[k] = v
 	}
 
+	log.Info("image", "appbuilder", images.FetchAppBuilder())
+	log.Info("image", "cm", images.FetchComponentManager())
+	log.Info("image", "de-app", images.FetchDeApp())
+	log.Info("image", "kc", images.FetchKeycloak())
 	// here Luca main loop structure argocd's styles
 
 	return nil
