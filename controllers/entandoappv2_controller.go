@@ -19,7 +19,7 @@ package controllers
 import (
 	"context"
 
-	upgradev1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
+	v1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -41,7 +41,7 @@ func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request
 	log := r.Log.WithName("Upgrade Controller")
 	log.Info("Start reconciling EntandoAppV2 custom resources")
 
-	EntandoAppV2 := upgradev1alpha1.EntandoAppV2{}
+	EntandoAppV2 := v1alpha1.EntandoAppV2{}
 	err := r.Client.Get(ctx, req.NamespacedName, &EntandoAppV2)
 	if err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -65,11 +65,11 @@ func (r *EntandoAppV2Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 	//log := r.Log.WithName("Upgrade Controller")
 	return ctrl.NewControllerManagedBy(mgr).
 		// FIXME! add filter on create for EntandoAppV2 cr
-		For(&upgradev1alpha1.EntandoAppV2{}).
+		For(&v1alpha1.EntandoAppV2{}).
 		Complete(r)
 }
 
-func (r *EntandoAppV2Reconciler) updateProgressStatus(ctx context.Context, cr upgradev1alpha1.EntandoAppV2) {
+func (r *EntandoAppV2Reconciler) updateProgressStatus(ctx context.Context, cr v1alpha1.EntandoAppV2) {
 	log := r.Log.WithName("Upgrade Controller")
 	err := r.Status().Update(ctx, &cr)
 	if err != nil {
