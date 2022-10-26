@@ -47,6 +47,9 @@ func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// FIXME! apply cleanup managements
+	// https://sdk.operatorframework.io/docs/building-operators/golang/advanced-topics/#handle-cleanup-on-deletion
+
 	// FIXME! add start proregss in status EntandoAppV2 cr
 	EntandoAppV2.Status.Progress = "starting updaye"
 	r.updateProgressStatus(ctx, EntandoAppV2)
