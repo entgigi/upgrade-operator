@@ -27,6 +27,8 @@ import (
 	"go.uber.org/zap/zapcore"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	v1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
+
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/entgigi/upgrade-operator.git/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -46,6 +48,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
+	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
