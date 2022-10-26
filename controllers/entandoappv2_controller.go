@@ -20,11 +20,15 @@ import (
 	"context"
 
 	v1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
+	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
+
+const entandoAppFinalizer = "app.entando.org/finalizer"
 
 // EntandoAppV2Reconciler reconciles a EntandoAppV2 object
 type EntandoAppV2Reconciler struct {
@@ -41,26 +45,58 @@ func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request
 	log := r.Log.WithName("Upgrade Controller")
 	log.Info("Start reconciling EntandoAppV2 custom resources")
 
-	EntandoAppV2 := v1alpha1.EntandoAppV2{}
-	err := r.Client.Get(ctx, req.NamespacedName, &EntandoAppV2)
+	entandoAppV2 := v1alpha1.EntandoAppV2{}
+	err := r.Client.Get(ctx, req.NamespacedName, &entandoAppV2)
 	if err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// FIXME! apply cleanup managements
-	// https://sdk.operatorframework.io/docs/building-operators/golang/advanced-topics/#handle-cleanup-on-deletion
+	// Check if the Memcached instance is marked to be deleted, which is
+	// indicated by the deletion timestamp being set.
+	isEntandoAppV2MarkedToBeDeleted := entandoAppV2.GetDeletionTimestamp() != nil
+	if isEntandoAppV2MarkedToBeDeleted {
+		if controllerutil.ContainsFinalizer(&entandoAppV2, entandoAppFinalizer) {
+			// Run finalization logic for memcachedFinalizer. If the
+			// finalization logic fails, don't remove the finalizer so
+			// that we can retry during the next reconciliation.
+			if err := r.finalizeEntandoApp(log, &entandoAppV2); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			// Remove memcachedFinalizer. Once all finalizers have been
+			// removed, the object will be deleted.
+			controllerutil.RemoveFinalizer(&entandoAppV2, entandoAppFinalizer)
+			err := r.Update(ctx, &entandoAppV2)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, nil
+	}
+
+	// Add finalizer for this CR
+	if !controllerutil.ContainsFinalizer(&entandoAppV2, entandoAppFinalizer) {
+		controllerutil.AddFinalizer(&entandoAppV2, entandoAppFinalizer)
+		err = r.Update(ctx, &entandoAppV2)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 
 	// FIXME! add start proregss in status EntandoAppV2 cr
-	EntandoAppV2.Status.Progress = "starting updaye"
-	r.updateProgressStatus(ctx, EntandoAppV2)
-	// FIXME! add sleep 1 minutes
+	entandoAppV2.Status.Progress = "starting update"
+	r.updateProgressStatus(ctx, entandoAppV2)
+
+	err = r.Client.Get(ctx, req.NamespacedName, &entandoAppV2)
+	r.reconcileResources(ctx, entandoAppV2)
 
 	// FIXME! add finished proregss in status EntandoAppV2 cr
-	EntandoAppV2.Status.Progress = "starting updaye"
-	r.updateProgressStatus(ctx, EntandoAppV2)
+	entandoAppV2.Status.Progress = "starting updaye"
+	r.updateProgressStatus(ctx, entandoAppV2)
 
 	log.Info("Reconciled EntandoAppV2 custom resources")
 	return ctrl.Result{}, nil
+
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -72,11 +108,39 @@ func (r *EntandoAppV2Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+func (r *EntandoAppV2Reconciler) finalizeEntandoApp(log logr.Logger, m *v1alpha1.EntandoAppV2) error {
+	// Add the cleanup steps that the operator
+	// needs to do before the CR can be deleted. Examples
+	// of finalizers include performing backups and deleting
+	// resources that are not owned by this CR, like a PVC.
+	log.Info("Successfully finalized entandoApp")
+	return nil
+}
+
 func (r *EntandoAppV2Reconciler) updateProgressStatus(ctx context.Context, cr v1alpha1.EntandoAppV2) {
 	log := r.Log.WithName("Upgrade Controller")
 	err := r.Status().Update(ctx, &cr)
 	if err != nil {
 		log.Error(err, "Unable to update EntandoAppV2's progress status", "progress", cr.Status.Progress)
 	}
+
+}
+
+func (r *EntandoAppV2Reconciler) reconcileResources(ctx context.Context, entandoAppV2 v1alpha1.EntandoAppV2) error {
+	//log := r.Log.WithName("Upgrade Controller")
+
+	imageManager := common.ImageManager{}
+	images := imageManager.FetchImagesByAppVersion(entandoAppV2.Spec.Version)
+	if images == nil {
+		images = common.EntandoAppImages{}
+	}
+
+	for k, v := range entandoAppV2.Spec.ImagesOverride {
+		images[k] = v
+	}
+
+	// here Luca main loop structure argocd's styles
+
+	return nil
 
 }

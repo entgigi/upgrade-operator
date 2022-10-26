@@ -24,8 +24,10 @@ import (
 
 // EntandoAppV2Spec defines the desired state of EntandoAppV2
 type EntandoAppV2Spec struct {
-	// Version is an example field of EntandoAppV2. Edit entandoappv2_types.go to remove/update
+	// Version is the field used to upgrade version of EntandoApp
 	Version string `json:"version"`
+	// ImagesOverride is a map usefull to override EntandoApp component images
+	ImagesOverride map[string]string `json:"imagesOverride,omitempty"`
 }
 
 // EntandoAppV2Status defines the observed state of EntandoAppV2
