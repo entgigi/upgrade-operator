@@ -6,9 +6,9 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - upgrade.entando.org
+  - app.entando.org
   resources:
-  - entandoupgrades
+  - entandoappv2s
   verbs:
   - create
   - delete
@@ -18,15 +18,15 @@ rules:
   - update
   - watch
 - apiGroups:
-  - upgrade.entando.org
+  - app.entando.org
   resources:
-  - entandoupgrades/finalizers
+  - entandoappv2s/finalizers
   verbs:
   - update
 - apiGroups:
-  - upgrade.entando.org
+  - app.entando.org
   resources:
-  - entandoupgrades/status
+  - entandoappv2s/status
   verbs:
   - get
   - patch

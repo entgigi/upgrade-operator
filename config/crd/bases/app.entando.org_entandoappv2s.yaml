@@ -5,20 +5,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
-  name: entandoupgrades.upgrade.entando.org
+  name: entandoappv2s.app.entando.org
 spec:
-  group: upgrade.entando.org
+  group: app.entando.org
   names:
-    kind: EntandoUpgrade
-    listKind: EntandoUpgradeList
-    plural: entandoupgrades
-    singular: entandoupgrade
+    kind: EntandoAppV2
+    listKind: EntandoAppV2List
+    plural: entandoappv2s
+    singular: entandoappv2
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: EntandoUpgrade is the Schema for the entandoupgrades API
+        description: EntandoAppV2 is the Schema for the entandoappv2s API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -33,22 +33,17 @@ spec:
           metadata:
             type: object
           spec:
-            description: EntandoUpgradeSpec defines the desired state of EntandoUpgrade
+            description: EntandoAppV2Spec defines the desired state of EntandoAppV2
             properties:
-              fromVersion:
-                description: FromVersion is an example field of EntandoUpgrade. Edit
-                  entandoupgrade_types.go to remove/update
-                type: string
-              toVersion:
-                description: ToVersion is an example field of EntandoUpgrade. Edit
-                  entandoupgrade_types.go to remove/update
+              version:
+                description: Version is an example field of EntandoAppV2. Edit entandoappv2_types.go
+                  to remove/update
                 type: string
             required:
-            - fromVersion
-            - toVersion
+            - version
             type: object
           status:
-            description: EntandoUpgradeStatus defines the observed state of EntandoUpgrade
+            description: EntandoAppV2Status defines the observed state of EntandoAppV2
             properties:
               patch:
                 type: string

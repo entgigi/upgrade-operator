@@ -22,17 +22,14 @@ import (
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// EntandoUpgradeSpec defines the desired state of EntandoUpgrade
-type EntandoUpgradeSpec struct {
-
-	// FromVersion is an example field of EntandoUpgrade. Edit entandoupgrade_types.go to remove/update
-	FromVersion string `json:"fromVersion"`
-	// ToVersion is an example field of EntandoUpgrade. Edit entandoupgrade_types.go to remove/update
-	ToVersion string `json:"toVersion"`
+// EntandoAppV2Spec defines the desired state of EntandoAppV2
+type EntandoAppV2Spec struct {
+	// Version is an example field of EntandoAppV2. Edit entandoappv2_types.go to remove/update
+	Version string `json:"version"`
 }
 
-// EntandoUpgradeStatus defines the observed state of EntandoUpgrade
-type EntandoUpgradeStatus struct {
+// EntandoAppV2Status defines the observed state of EntandoAppV2
+type EntandoAppV2Status struct {
 	Progress string `json:"progress,omitempty"`
 	Patch    string `json:"patch,omitempty"`
 }
@@ -40,24 +37,24 @@ type EntandoUpgradeStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// EntandoUpgrade is the Schema for the entandoupgrades API
-type EntandoUpgrade struct {
+// EntandoAppV2 is the Schema for the entandoappv2s API
+type EntandoAppV2 struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   EntandoUpgradeSpec   `json:"spec,omitempty"`
-	Status EntandoUpgradeStatus `json:"status,omitempty"`
+	Spec   EntandoAppV2Spec   `json:"spec,omitempty"`
+	Status EntandoAppV2Status `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// EntandoUpgradeList contains a list of EntandoUpgrade
-type EntandoUpgradeList struct {
+// EntandoAppV2List contains a list of EntandoAppV2
+type EntandoAppV2List struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []EntandoUpgrade `json:"items"`
+	Items           []EntandoAppV2 `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&EntandoUpgrade{}, &EntandoUpgradeList{})
+	SchemeBuilder.Register(&EntandoAppV2{}, &EntandoAppV2List{})
 }

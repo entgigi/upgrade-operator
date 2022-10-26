@@ -1,6 +1,0 @@
-apiVersion: upgrade.entando.org/v1alpha1
-kind: EntandoUpgrade
-metadata:
-  name: entandoupgrade-sample
-spec:
-  # TODO(user): Add fields here

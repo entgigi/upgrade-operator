@@ -95,12 +95,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.EntandoUpgradeReconciler{
+	if err = (&controllers.EntandoAppV2Reconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 		Log:    ctrl.Log,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create EntandoUpgradeReconciler controller")
+		setupLog.Error(err, "unable to create EntandoAppV2Reconciler controller")
 		os.Exit(1)
 	}
 

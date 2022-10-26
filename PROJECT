@@ -12,8 +12,8 @@ resources:
     namespaced: true
   controller: true
   domain: entando.org
-  group: upgrade
-  kind: EntandoUpgrade
+  group: app
+  kind: EntandoAppV2
   path: github.com/entgigi/upgrade-operator.git/api/v1alpha1
   version: v1alpha1
 version: "3"

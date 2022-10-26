@@ -1,0 +1,6 @@
+apiVersion: app.entando.org/v1alpha1
+kind: EntandoAppV2
+metadata:
+  name: entando-app-v2-sample
+spec:
+  version: v7.1.0
