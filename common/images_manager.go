@@ -12,19 +12,23 @@ type ImageManager struct {
 type EntandoAppImages map[string]interface{}
 
 func (e EntandoAppImages) FetchAppBuilder() string {
-	return e[AppBuilderKey].(string)
+	k, _ := e[AppBuilderKey].(string)
+	return k
 }
 
 func (e EntandoAppImages) FetchComponentManager() string {
-	return e[ComponentManagerKey].(string)
+	k, _ := e[ComponentManagerKey].(string)
+	return k
 }
 
 func (e EntandoAppImages) FetchDeApp() string {
-	return e[DeAppKey].(string)
+	k, _ := e[DeAppKey].(string)
+	return k
 }
 
 func (e EntandoAppImages) FetchKeycloak() string {
-	return e[KeycloakKey].(string)
+	k, _ := e[KeycloakKey].(string)
+	return k
 }
 
 type EntandoAppList map[string]EntandoAppImages

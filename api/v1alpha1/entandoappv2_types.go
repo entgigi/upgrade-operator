@@ -32,8 +32,9 @@ type EntandoAppV2Spec struct {
 
 // EntandoAppV2Status defines the observed state of EntandoAppV2
 type EntandoAppV2Status struct {
-	Progress string `json:"progress,omitempty"`
-	Patch    string `json:"patch,omitempty"`
+	ObservedGeneration int64  `json:"observedGeneration,omitempty"`
+	Progress           string `json:"progress,omitempty"`
+	Patch              string `json:"patch,omitempty"`
 }
 
 //+kubebuilder:object:root=true

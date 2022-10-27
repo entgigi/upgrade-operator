@@ -18,17 +18,24 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	v1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/util/retry"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-const entandoAppFinalizer = "app.entando.org/finalizer"
+const (
+	entandoAppFinalizer = "app.entando.org/finalizer"
+	controllerLogName   = "EntandoAppV2 Controller"
+)
 
 // EntandoAppV2Reconciler reconciles a EntandoAppV2 object
 type EntandoAppV2Reconciler struct {
@@ -42,7 +49,7 @@ type EntandoAppV2Reconciler struct {
 //+kubebuilder:rbac:groups=app.entando.org,resources=entandoappv2s/finalizers,verbs=update
 
 func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithName("Upgrade Controller")
+	log := r.Log.WithName(controllerLogName)
 	log.Info("Start reconciling EntandoAppV2 custom resources")
 
 	entandoAppV2 := v1alpha1.EntandoAppV2{}
@@ -83,53 +90,71 @@ func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	}
 
-	// FIXME! add start proregss in status EntandoAppV2 cr
 	entandoAppV2.Status.Progress = "starting update"
-	r.updateProgressStatus(ctx, entandoAppV2)
+	r.updateProgressStatus(ctx, req.NamespacedName, "1/2")
 
-	err = r.Client.Get(ctx, req.NamespacedName, &entandoAppV2)
 	r.reconcileResources(ctx, entandoAppV2)
+	time.Sleep(8 * time.Second)
 
-	// FIXME! add finished proregss in status EntandoAppV2 cr
-	entandoAppV2.Status.Progress = "starting updaye"
-	r.updateProgressStatus(ctx, entandoAppV2)
+	r.updateProgressStatus(ctx, req.NamespacedName, "2/2")
 
 	log.Info("Reconciled EntandoAppV2 custom resources")
 	return ctrl.Result{}, nil
 
 }
 
+// =====================================================================
 // SetupWithManager sets up the controller with the Manager.
+// =====================================================================
 func (r *EntandoAppV2Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 	//log := r.Log.WithName("Upgrade Controller")
 	return ctrl.NewControllerManagedBy(mgr).
 		// FIXME! add filter on create for EntandoAppV2 cr
 		For(&v1alpha1.EntandoAppV2{}).
+		WithEventFilter(predicate.GenerationChangedPredicate{}). //solo modifiche a spec
 		Complete(r)
 }
 
+// =====================================================================
+// Add the cleanup steps that the operator
+// needs to do before the CR can be deleted. Examples
+// of finalizers include performing backups and deleting
+// resources that are not owned by this CR, like a PVC.
+// =====================================================================
 func (r *EntandoAppV2Reconciler) finalizeEntandoApp(log logr.Logger, m *v1alpha1.EntandoAppV2) error {
-	// Add the cleanup steps that the operator
-	// needs to do before the CR can be deleted. Examples
-	// of finalizers include performing backups and deleting
-	// resources that are not owned by this CR, like a PVC.
 	log.Info("Successfully finalized entandoApp")
 	return nil
 }
 
-func (r *EntandoAppV2Reconciler) updateProgressStatus(ctx context.Context, cr v1alpha1.EntandoAppV2) {
-	log := r.Log.WithName("Upgrade Controller")
-	err := r.Status().Update(ctx, &cr)
-	if err != nil {
-		log.Error(err, "Unable to update EntandoAppV2's progress status", "progress", cr.Status.Progress)
+// =====================================================================
+// Utility function to upgrade cr-Status-progress
+// =====================================================================
+func (r *EntandoAppV2Reconciler) updateProgressStatus(ctx context.Context, req types.NamespacedName, progress string) {
+	log := r.Log.WithName(controllerLogName)
+	log.Info("upgrading progress status")
+	cr := &v1alpha1.EntandoAppV2{}
+	err := r.Client.Get(ctx, req, cr)
+	if err == nil {
+		cr.Status.Progress = progress
+		cr.Status.ObservedGeneration = cr.ObjectMeta.Generation
+
+		err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			return r.Status().Update(ctx, cr)
+		})
+
+		if err == nil {
+			return
+		}
 	}
+	log.Error(err, "Unable to update EntandoAppV2's progress status", "progress", cr.Status.Progress)
 
 }
 
+// main temp function for reconciling resources [to merge with luca's work]
 func (r *EntandoAppV2Reconciler) reconcileResources(ctx context.Context, entandoAppV2 v1alpha1.EntandoAppV2) error {
-	log := r.Log.WithName("Upgrade Controller")
+	log := r.Log.WithName(controllerLogName)
 
-	imageManager := common.ImageManager{}
+	imageManager := &common.ImageManager{Log: r.Log}
 	images := imageManager.FetchImagesByAppVersion(entandoAppV2.Spec.Version)
 	if images == nil {
 		images = common.EntandoAppImages{}

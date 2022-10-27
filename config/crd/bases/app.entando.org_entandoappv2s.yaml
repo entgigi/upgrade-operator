@@ -35,9 +35,14 @@ spec:
           spec:
             description: EntandoAppV2Spec defines the desired state of EntandoAppV2
             properties:
+              imagesOverride:
+                additionalProperties:
+                  type: string
+                description: ImagesOverride is a map usefull to override EntandoApp
+                  component images
+                type: object
               version:
-                description: Version is an example field of EntandoAppV2. Edit entandoappv2_types.go
-                  to remove/update
+                description: Version is the field used to upgrade version of EntandoApp
                 type: string
             required:
             - version
@@ -45,6 +50,9 @@ spec:
           status:
             description: EntandoAppV2Status defines the observed state of EntandoAppV2
             properties:
+              observedGeneration:
+                format: int64
+                type: integer
               patch:
                 type: string
               progress:
