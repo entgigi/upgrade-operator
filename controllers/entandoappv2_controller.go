@@ -135,10 +135,10 @@ func (r *EntandoAppV2Reconciler) updateProgressStatus(ctx context.Context, req t
 
 	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		cr := &v1alpha1.EntandoAppV2{}
-		cr.Status.Progress = progress
-		cr.Status.ObservedGeneration = cr.ObjectMeta.Generation
 
 		if err := r.Client.Get(ctx, req, cr); err == nil {
+			cr.Status.Progress = progress
+			cr.Status.ObservedGeneration = cr.ObjectMeta.Generation
 			return r.Status().Update(ctx, cr)
 		} else {
 			return err
