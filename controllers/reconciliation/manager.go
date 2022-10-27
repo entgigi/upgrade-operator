@@ -2,6 +2,7 @@ package reconciliation
 
 import (
 	"context"
+
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/go-logr/logr"
@@ -12,27 +13,32 @@ import (
 
 const (
 	reconciliationLogName = "ReconcileManager"
+	numberOfSteps         = 4
 )
 
 type ReconcileManager struct {
 	client.Client
-	log    logr.Logger
-	scheme *runtime.Scheme
+	log           logr.Logger
+	scheme        *runtime.Scheme
+	statusUpdater *StatusUpdater
 }
 
 // NewReconcileManager initialize a ReconcileManager
 func NewReconcileManager(client client.Client, log logr.Logger, scheme *runtime.Scheme) *ReconcileManager {
 	logger := log.WithName(reconciliationLogName)
+	statusUpdater := NewStatusUpdater(client, logger)
 	return &ReconcileManager{
 		client,
 		logger,
 		scheme,
+		statusUpdater,
 	}
 }
 
 func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) error {
 
 	r.log.Info("Starting main reconciliation flow")
+	r.statusUpdater.SetReconcileStarted(ctx, req.NamespacedName, numberOfSteps)
 
 	cr := &v1alpha1.EntandoAppV2{}
 	if err := r.Client.Get(ctx, req.NamespacedName, cr); err != nil {
@@ -41,24 +47,38 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 	images := r.fetchImages(*cr)
 
 	if err := r.reconcileKeycloak(ctx, images.FetchKeycloak(), req); err != nil {
+		r.statusUpdater.SetReconcileFailed(ctx, cr, req.NamespacedName, "KeycloakReconciliationFailed")
 		return err
 	}
+	r.statusUpdater.IncrementProgress(ctx, req.NamespacedName)
 
 	if err := r.reconcileDeApp(ctx, images.FetchDeApp(), req); err != nil {
+		r.statusUpdater.SetReconcileFailed(ctx, cr, req.NamespacedName, "DeAppReconciliationFailed")
 		return err
 	}
+	r.statusUpdater.IncrementProgress(ctx, req.NamespacedName)
 
 	if err := r.reconcileAppBuilder(ctx, images.FetchAppBuilder(), req); err != nil {
+		r.statusUpdater.SetReconcileFailed(ctx, cr, req.NamespacedName, "AppBuilderReconciliationFailed")
 		return err
 	}
+	r.statusUpdater.IncrementProgress(ctx, req.NamespacedName)
 
 	// TODO before check entando-k8s-service app ready
 	if err := r.reconcileComponentManager(ctx, images.FetchComponentManager(), req); err != nil {
+		r.statusUpdater.SetReconcileFailed(ctx, cr, req.NamespacedName, "ComponentManagerReconciliationFailed")
 		return err
+	}
+	cr, _ = r.statusUpdater.IncrementProgress(ctx, req.NamespacedName)
+
+	// Check for progress/total mismatch
+	if cr.Status.Progress != numberOfSteps {
+		r.log.Info("WARNING: progress different from total at the end of reconciliation", "progress", cr.Status.Progress, "total", numberOfSteps)
 	}
 
 	// TODO manage CSV
 
+	r.statusUpdater.SetReconcileSuccessfullyCompleted(ctx, req.NamespacedName)
 	return nil
 }
 
