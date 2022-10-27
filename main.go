@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/entgigi/upgrade-operator.git/utils"
 	"os"
 	goruntime "runtime"
 
@@ -72,7 +73,7 @@ func main() {
 
 	printVersion()
 
-	namespace, err := getWatchNamespace()
+	namespace, err := utils.GetWatchNamespace()
 	if err != nil {
 		setupLog.Info("unable to get WATCH_NAMESPACE, the manager will watch and manage resources in all namespaces")
 
@@ -126,19 +127,4 @@ func printVersion() {
 	setupLog.Info(fmt.Sprintf("Go Version: %s", goruntime.Version()))
 	setupLog.Info(fmt.Sprintf("Go OS/Arch: %s/%s", goruntime.GOOS, goruntime.GOARCH))
 	setupLog.Info(fmt.Sprintf("Version of %s-operator: %v", common.AppName, common.Version))
-}
-
-// FIXME! mettere in package utils
-// getWatchNamespace returns the Namespace the operator should be watching for changes
-func getWatchNamespace() (string, error) {
-	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
-	// which specifies the Namespace to watch.
-	// An empty value means the operator is running with cluster scope.
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
-
-	ns, found := os.LookupEnv(watchNamespaceEnvVar)
-	if !found {
-		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
-	}
-	return ns, nil
 }

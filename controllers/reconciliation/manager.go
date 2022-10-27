@@ -6,7 +6,9 @@ import (
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/go-logr/logr"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -108,4 +110,13 @@ func (r *ReconcileManager) fetchImages(entandoAppV2 v1alpha1.EntandoAppV2) commo
 
 	return images
 
+}
+
+func (r *ReconcileManager) getDeployment(ctx context.Context, namespace string, deploymentName string) (appsv1.Deployment, error) {
+	deployment := appsv1.Deployment{}
+	lookupKey := types.NamespacedName{Namespace: namespace, Name: deploymentName}
+
+	err := r.Get(ctx, lookupKey, &deployment)
+
+	return deployment, err
 }
