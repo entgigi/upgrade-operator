@@ -14,6 +14,7 @@ COPY main.go main.go
 COPY api/ api/
 COPY common/ common/
 COPY controllers/ controllers/
+COPY utils/ utils/
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
