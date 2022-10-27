@@ -132,21 +132,23 @@ func (r *EntandoAppV2Reconciler) finalizeEntandoApp(log logr.Logger, m *v1alpha1
 func (r *EntandoAppV2Reconciler) updateProgressStatus(ctx context.Context, req types.NamespacedName, progress string) {
 	log := r.Log.WithName(controllerLogName)
 	log.Info("upgrading progress status")
-	cr := &v1alpha1.EntandoAppV2{}
-	err := r.Client.Get(ctx, req, cr)
-	if err == nil {
+
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		cr := &v1alpha1.EntandoAppV2{}
 		cr.Status.Progress = progress
 		cr.Status.ObservedGeneration = cr.ObjectMeta.Generation
 
-		err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		if err := r.Client.Get(ctx, req, cr); err == nil {
 			return r.Status().Update(ctx, cr)
-		})
-
-		if err == nil {
-			return
+		} else {
+			return err
 		}
+	})
+
+	if err == nil {
+		return
 	}
-	log.Error(err, "Unable to update EntandoAppV2's progress status", "progress", cr.Status.Progress)
+	log.Error(err, "Unable to update EntandoAppV2's progress status", "progress", progress)
 
 }
 

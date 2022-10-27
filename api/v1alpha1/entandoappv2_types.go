@@ -34,7 +34,6 @@ type EntandoAppV2Spec struct {
 type EntandoAppV2Status struct {
 	ObservedGeneration int64  `json:"observedGeneration,omitempty"`
 	Progress           string `json:"progress,omitempty"`
-	Patch              string `json:"patch,omitempty"`
 }
 
 //+kubebuilder:object:root=true

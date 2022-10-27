@@ -53,8 +53,6 @@ spec:
               observedGeneration:
                 format: int64
                 type: integer
-              patch:
-                type: string
               progress:
                 type: string
             type: object
