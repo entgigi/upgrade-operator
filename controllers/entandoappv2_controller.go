@@ -18,10 +18,10 @@ package controllers
 
 import (
 	"context"
+	"github.com/entgigi/upgrade-operator.git/controllers/reconciliation"
 	"time"
 
 	v1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
-	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -39,6 +39,7 @@ const (
 
 // EntandoAppV2Reconciler reconciles a EntandoAppV2 object
 type EntandoAppV2Reconciler struct {
+	// TODO centralize log variable into one single struct to embed
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
@@ -93,7 +94,11 @@ func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request
 	entandoAppV2.Status.Progress = "starting update"
 	r.updateProgressStatus(ctx, req.NamespacedName, "1/2")
 
-	r.reconcileResources(ctx, entandoAppV2)
+	//r.reconcileResources(ctx, entandoAppV2)
+	manager := reconciliation.NewReconcileManager(r.Client, r.Log, r.Scheme)
+	if err = manager.MainReconcile(ctx, req); err != nil {
+		return ctrl.Result{}, err
+	}
 	time.Sleep(8 * time.Second)
 
 	r.updateProgressStatus(ctx, req.NamespacedName, "2/2")
@@ -149,29 +154,5 @@ func (r *EntandoAppV2Reconciler) updateProgressStatus(ctx context.Context, req t
 		return
 	}
 	log.Error(err, "Unable to update EntandoAppV2's progress status", "progress", progress)
-
-}
-
-// main temp function for reconciling resources [to merge with luca's work]
-func (r *EntandoAppV2Reconciler) reconcileResources(ctx context.Context, entandoAppV2 v1alpha1.EntandoAppV2) error {
-	log := r.Log.WithName(controllerLogName)
-
-	imageManager := &common.ImageManager{Log: r.Log}
-	images := imageManager.FetchImagesByAppVersion(entandoAppV2.Spec.Version)
-	if images == nil {
-		images = common.EntandoAppImages{}
-	}
-
-	for k, v := range entandoAppV2.Spec.ImagesOverride {
-		images[k] = v
-	}
-
-	log.Info("image", "appbuilder", images.FetchAppBuilder())
-	log.Info("image", "cm", images.FetchComponentManager())
-	log.Info("image", "de-app", images.FetchDeApp())
-	log.Info("image", "kc", images.FetchKeycloak())
-	// here Luca main loop structure argocd's styles
-
-	return nil
 
 }
