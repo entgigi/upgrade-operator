@@ -38,7 +38,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: controller:latest
+        image: lcorsettientando/upgrade-operator:v0.0.1
         imagePullPolicy: Always
         name: manager
         securityContext:
@@ -73,7 +73,7 @@ spec:
               fieldRef:
                 # OLM
                 #fieldPath: metadata.annotations['olm.targetNamespaces']
-                # non OLM 
+                # non OLM
                 fieldPath: metadata.namespace
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10

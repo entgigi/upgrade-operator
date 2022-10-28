@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	corev1 "k8s.io/api/core/v1"
 	"os"
 )
 
@@ -31,4 +32,22 @@ func GetWatchNamespace() (string, error) {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
 	return ns, nil
+}
+
+// TODO make more generic with interface parameter
+
+func ConvertEnvVarSliceToMap(src []corev1.EnvVar) map[string]corev1.EnvVar {
+	elementMap := make(map[string]corev1.EnvVar)
+	for _, item := range src {
+		elementMap[item.Name] = item
+	}
+	return elementMap
+}
+
+func ConvertEnvVarMapToSlice(src map[string]corev1.EnvVar) []corev1.EnvVar {
+	elementSlice := make([]corev1.EnvVar, 0)
+	for _, item := range src {
+		elementSlice = append(elementSlice, item)
+	}
+	return elementSlice
 }

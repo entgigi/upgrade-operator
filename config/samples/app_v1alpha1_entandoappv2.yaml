@@ -7,6 +7,8 @@ spec:
   commonEnvironmentVariables:
     - name: CUSTOM_ENV
       value: test
+    - name: TO_OVERRIDE_1
+      value: SUCCESS
   appBuilder:
     environmentVariables:
       - name: CUSTOM_ENV
@@ -14,6 +16,8 @@ spec:
     imageOverride: "test/test:12"
   componentManager:
     environmentVariables:
-      - name: CUSTOM_ENV
+      - name: CUSTOM_ENV_CM
         value: test
+      - name: TO_OVERRIDE_2
+        value: SUCCESS
     imageOverride: "test/test:12"
