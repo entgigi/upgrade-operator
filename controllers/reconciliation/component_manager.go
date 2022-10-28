@@ -2,6 +2,7 @@ package reconciliation
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -11,6 +12,8 @@ import (
 const componentManagerDeploymentEndName = "cm-deployment"
 
 func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image string, req ctrl.Request) error {
+	r.Log.Info("Starting ComponetManager reconciliation flow")
+
 	deploymentList := &appsv1.DeploymentList{}
 
 	if err := r.Client.List(ctx, deploymentList); err != nil {
@@ -25,12 +28,16 @@ func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image 
 		}
 	}
 
-	if deployment != nil {
-		deployment.Spec.Template.Spec.Containers[0].Image = image
-		if err := r.Update(ctx, deployment); err != nil {
-			return err
-		}
+	if deployment == nil {
+		return fmt.Errorf("deployment ComponetManager not found")
 	}
+
+	deployment.Spec.Template.Spec.Containers[0].Image = image
+	if err := r.Update(ctx, deployment); err != nil {
+		return err
+	}
+
+	r.Log.Info("Finished ComponetManager reconciliation flow")
 
 	return nil
 }
