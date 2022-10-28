@@ -121,8 +121,6 @@ spec:
               observedGeneration:
                 format: int64
                 type: integer
-              patch:
-                type: string
               progress:
                 type: integer
               total:

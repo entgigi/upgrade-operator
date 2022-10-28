@@ -35,7 +35,6 @@ type EntandoAppV2Status struct {
 	ObservedGeneration int64              `json:"observedGeneration,omitempty"`
 	Progress           int                `json:"progress,omitempty"`
 	Total              int                `json:"total,omitempty"`
-	Patch              string             `json:"patch,omitempty"`
 	Conditions         []metav1.Condition `json:"conditions,omitempty"`
 }
 
