@@ -88,7 +88,7 @@ func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	}
 
-	manager := reconciliation.NewReconcileManager(r.Client, r.Log, r.Scheme)
+	manager := reconciliation.NewReconcileManager(r.Client, r.Log)
 	if err = manager.MainReconcile(ctx, req); err != nil {
 		return ctrl.Result{}, err
 	}

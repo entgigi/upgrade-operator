@@ -11,7 +11,7 @@ const (
 )
 
 func (r *ReconcileManager) reconcileKeycloak(ctx context.Context, image string, req ctrl.Request) error {
-	r.log.Info("Starting keycloak reconciliation flow")
+	r.Log.Info("Starting keycloak reconciliation flow")
 
 	//time.Sleep(2 * time.Second)
 
@@ -27,7 +27,7 @@ func (r *ReconcileManager) reconcileKeycloak(ctx context.Context, image string, 
 
 	err = r.Update(ctx, &deployment)
 
-	r.log.Info("Finished keycloak reconciliation flow")
+	r.Log.Info("Finished keycloak reconciliation flow")
 
 	return err
 }
