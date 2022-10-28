@@ -51,7 +51,10 @@ type ComponentManager EntandoComponent
 
 type DeApp EntandoComponent
 
-type Keycloak EntandoComponent
+type Keycloak struct {
+	EntandoComponent `json:"commonComponentConfigs,omitempty"`
+	ExternalService  bool `json:"externalService,omitempty"`
+}
 
 // EntandoAppV2Status defines the observed state of EntandoAppV2
 type EntandoAppV2Status struct {
