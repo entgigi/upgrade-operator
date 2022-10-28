@@ -2,10 +2,12 @@ package reconciliation
 
 import (
 	"context"
+	"strings"
 
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/go-logr/logr"
+	csv "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -119,4 +121,35 @@ func (r *ReconcileManager) getDeployment(ctx context.Context, namespace string, 
 	err := r.Get(ctx, lookupKey, &deployment)
 
 	return deployment, err
+}
+
+func (r *ReconcileManager) reconcileCsv(ctx context.Context, req ctrl.Request, appImages common.EntandoAppImages) error {
+	csv := &csv.ClusterServiceVersionList{}
+
+	if err := r.Client.List(ctx, csv); err != nil {
+		return err
+	}
+
+	for _, item := range csv.Items {
+		if strings.HasPrefix(item.ObjectMeta.Name, "entando-k8s-operator") {
+			for _, image := range item.Spec.RelatedImages {
+				switch {
+				case image.Name == "entando-component-manager-6-4":
+					image.Name = appImages.FetchComponentManager()
+				}
+			}
+			for _, deploy := range item.Spec.InstallStrategy.StrategySpec.DeploymentSpecs {
+				if deploy.Name == "entando-operator" {
+					for _, env := range deploy.Spec.Template.Spec.Containers[0].Env {
+						switch {
+						case env.Name == "RELATED_IMAGE_ENTANDO_COMPONENT_MANAGER_6_4":
+							env.Value = appImages.FetchComponentManager()
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return nil
 }
