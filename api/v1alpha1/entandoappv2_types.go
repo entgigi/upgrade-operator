@@ -32,8 +32,10 @@ type EntandoAppV2Spec struct {
 
 // EntandoAppV2Status defines the observed state of EntandoAppV2
 type EntandoAppV2Status struct {
-	ObservedGeneration int64  `json:"observedGeneration,omitempty"`
-	Progress           string `json:"progress,omitempty"`
+	ObservedGeneration int64              `json:"observedGeneration,omitempty"`
+	Progress           int                `json:"progress,omitempty"`
+	Total              int                `json:"total,omitempty"`
+	Conditions         []metav1.Condition `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true

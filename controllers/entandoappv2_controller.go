@@ -18,14 +18,11 @@ package controllers
 
 import (
 	"context"
-	"github.com/entgigi/upgrade-operator.git/controllers/reconciliation"
-	"time"
 
 	v1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
+	"github.com/entgigi/upgrade-operator.git/controllers/reconciliation"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/util/retry"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -91,17 +88,10 @@ func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	}
 
-	entandoAppV2.Status.Progress = "starting update"
-	r.updateProgressStatus(ctx, req.NamespacedName, "1/2")
-
-	//r.reconcileResources(ctx, entandoAppV2)
 	manager := reconciliation.NewReconcileManager(r.Client, r.Log, r.Scheme)
 	if err = manager.MainReconcile(ctx, req); err != nil {
 		return ctrl.Result{}, err
 	}
-	time.Sleep(8 * time.Second)
-
-	r.updateProgressStatus(ctx, req.NamespacedName, "2/2")
 
 	log.Info("Reconciled EntandoAppV2 custom resources")
 	return ctrl.Result{}, nil
@@ -129,30 +119,4 @@ func (r *EntandoAppV2Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 func (r *EntandoAppV2Reconciler) finalizeEntandoApp(log logr.Logger, m *v1alpha1.EntandoAppV2) error {
 	log.Info("Successfully finalized entandoApp")
 	return nil
-}
-
-// =====================================================================
-// Utility function to upgrade cr-Status-progress
-// =====================================================================
-func (r *EntandoAppV2Reconciler) updateProgressStatus(ctx context.Context, req types.NamespacedName, progress string) {
-	log := r.Log.WithName(controllerLogName)
-	log.Info("upgrading progress status")
-
-	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		cr := &v1alpha1.EntandoAppV2{}
-
-		if err := r.Client.Get(ctx, req, cr); err == nil {
-			cr.Status.Progress = progress
-			cr.Status.ObservedGeneration = cr.ObjectMeta.Generation
-			return r.Status().Update(ctx, cr)
-		} else {
-			return err
-		}
-	})
-
-	if err == nil {
-		return
-	}
-	log.Error(err, "Unable to update EntandoAppV2's progress status", "progress", progress)
-
 }
