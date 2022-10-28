@@ -65,6 +65,29 @@ func (su *StatusUpdater) SetReconcileStarted(ctx context.Context, key types.Name
 	return cr, err
 }
 
+func (su *StatusUpdater) SetReconcileProcessingComponent(ctx context.Context, key types.NamespacedName, componentName string) (*v1alpha1.EntandoAppV2, error) {
+	cr, err := su.updateStatus(ctx, key, func(cr *v1alpha1.EntandoAppV2) {
+		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
+			Type:    Ready,
+			Status:  metav1.ConditionFalse,
+			Reason:  CustomResourceChanged,
+			Message: "Processing " + componentName,
+		})
+		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
+			Type:    Succeeded,
+			Status:  metav1.ConditionUnknown,
+			Reason:  CustomResourceChanged,
+			Message: "Processing " + componentName,
+		})
+	})
+
+	if err != nil {
+		su.log.Error(err, "Unable to update EntandoAppV2's status for reconciliation started")
+	}
+
+	return cr, err
+}
+
 func (su *StatusUpdater) SetReconcileSuccessfullyCompleted(ctx context.Context, key types.NamespacedName) (*v1alpha1.EntandoAppV2, error) {
 	cr, err := su.updateStatus(ctx, key, func(cr *v1alpha1.EntandoAppV2) {
 		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
@@ -88,7 +111,7 @@ func (su *StatusUpdater) SetReconcileSuccessfullyCompleted(ctx context.Context, 
 	return cr, err
 }
 
-func (su *StatusUpdater) SetReconcileFailed(ctx context.Context, cr *v1alpha1.EntandoAppV2, key types.NamespacedName, reason string) (*v1alpha1.EntandoAppV2, error) {
+func (su *StatusUpdater) SetReconcileFailed(ctx context.Context, key types.NamespacedName, reason string) (*v1alpha1.EntandoAppV2, error) {
 	cr, err := su.updateStatus(ctx, key, func(cr *v1alpha1.EntandoAppV2) {
 		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
 			Type:    Ready,

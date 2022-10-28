@@ -46,27 +46,31 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 	}
 	images := r.fetchImages(*cr)
 
+	r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "Keycloak")
 	if err := r.reconcileKeycloak(ctx, images.FetchKeycloak(), req); err != nil {
-		r.statusUpdater.SetReconcileFailed(ctx, cr, req.NamespacedName, "KeycloakReconciliationFailed")
+		r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "KeycloakReconciliationFailed")
 		return err
 	}
 	r.statusUpdater.IncrementProgress(ctx, req.NamespacedName)
 
+	r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "DeApp")
 	if err := r.reconcileDeApp(ctx, images.FetchDeApp(), req); err != nil {
-		r.statusUpdater.SetReconcileFailed(ctx, cr, req.NamespacedName, "DeAppReconciliationFailed")
+		r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "DeAppReconciliationFailed")
 		return err
 	}
 	r.statusUpdater.IncrementProgress(ctx, req.NamespacedName)
 
+	r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "AppBuilder")
 	if err := r.reconcileAppBuilder(ctx, images.FetchAppBuilder(), req); err != nil {
-		r.statusUpdater.SetReconcileFailed(ctx, cr, req.NamespacedName, "AppBuilderReconciliationFailed")
+		r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "AppBuilderReconciliationFailed")
 		return err
 	}
 	r.statusUpdater.IncrementProgress(ctx, req.NamespacedName)
 
 	// TODO before check entando-k8s-service app ready
+	r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "ComponentManager")
 	if err := r.reconcileComponentManager(ctx, images.FetchComponentManager(), req); err != nil {
-		r.statusUpdater.SetReconcileFailed(ctx, cr, req.NamespacedName, "ComponentManagerReconciliationFailed")
+		r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "ComponentManagerReconciliationFailed")
 		return err
 	}
 	cr, _ = r.statusUpdater.IncrementProgress(ctx, req.NamespacedName)
