@@ -68,7 +68,7 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 
 	// progress step not added because is not a business step but jsut technical
 	r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "Csv")
-	csvReconcile := &legacy.LegacyReconcileManager{BaseK8sStructure: common.BaseK8sStructure{Client: r.Client, Log: r.Log}}
+	csvReconcile := legacy.NewLegacyReconcileManager(r.Client, r.Log)
 	if err = csvReconcile.ReconcileClusterServiceVersion(ctx, req, images); err != nil {
 		r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "CsvReconciliationFailed")
 		return err

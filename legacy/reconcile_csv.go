@@ -5,12 +5,18 @@ import (
 	"strings"
 
 	"github.com/entgigi/upgrade-operator.git/common"
+	"github.com/go-logr/logr"
 	csv "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type LegacyReconcileManager struct {
 	common.BaseK8sStructure
+}
+
+func NewLegacyReconcileManager(client client.Client, log logr.Logger) *LegacyReconcileManager {
+	return &LegacyReconcileManager{BaseK8sStructure: common.BaseK8sStructure{Client: client, Log: log}}
 }
 
 func (r *LegacyReconcileManager) ReconcileClusterServiceVersion(ctx context.Context, req ctrl.Request, appImages common.EntandoAppImages) error {
