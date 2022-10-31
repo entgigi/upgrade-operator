@@ -14,7 +14,7 @@ import (
 const componentManagerDeploymentEndName = "cm-deployment"
 
 func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image string, req ctrl.Request) error {
-	r.Log.Info("Starting ComponetManager reconciliation flow")
+	r.Log.Info("Starting ComponentManager reconciliation flow")
 
 	deploymentList := &appsv1.DeploymentList{}
 
@@ -31,7 +31,7 @@ func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image 
 	}
 
 	if deployment == nil {
-		return fmt.Errorf("deployment ComponetManager not found")
+		return fmt.Errorf("deployment ComponentManager not found")
 	}
 
 	deployment.Spec.Template.Spec.Containers[0].Image = image
@@ -48,7 +48,7 @@ func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image 
 		return err
 	}
 
-	r.Log.Info("Finished ComponetManager reconciliation flow")
+	r.Log.Info("Finished ComponentManager reconciliation flow")
 
 	return nil
 }
