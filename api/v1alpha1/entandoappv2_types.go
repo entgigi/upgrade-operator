@@ -52,7 +52,8 @@ type ComponentManager EntandoComponent
 type DeApp EntandoComponent
 
 type Keycloak struct {
-	EntandoComponent `json:"commonComponentConfigs,omitempty"`
+	// Empty JSON tag is needed to avoid the error 'encountered struct field "" without JSON tag'
+	EntandoComponent `json:",omitempty"`
 	ExternalService  bool `json:"externalService,omitempty"`
 }
 
