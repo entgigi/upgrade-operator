@@ -4,5 +4,20 @@ metadata:
   name: entando-app-v2-sample
 spec:
   version: 7.1.1
-  imagesOverride:
-    AppBuilder: "test/test:12"
+  commonEnvironmentVariables:
+    - name: CUSTOM_ENV
+      value: test
+    - name: TO_OVERRIDE_1
+      value: SUCCESS
+  appBuilder:
+    environmentVariables:
+      - name: CUSTOM_ENV
+        value: test
+    imageOverride: "test/test:12"
+  componentManager:
+    environmentVariables:
+      - name: CUSTOM_ENV_CM
+        value: test
+      - name: TO_OVERRIDE_2
+        value: SUCCESS
+    imageOverride: "test/test:12"

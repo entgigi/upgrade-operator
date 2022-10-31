@@ -156,6 +156,7 @@ func (su *StatusUpdater) updateStatus(ctx context.Context, key types.NamespacedN
 			cr.Status.ObservedGeneration = cr.ObjectMeta.Generation
 			return su.client.Status().Update(ctx, cr)
 		} else {
+			su.log.Error(err, "error update status")
 			return err
 		}
 	})

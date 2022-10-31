@@ -14,6 +14,7 @@ COPY main.go main.go
 COPY api/ api/
 COPY common/ common/
 COPY controllers/ controllers/
+COPY legacy/ legacy/
 COPY utils/ utils/
 
 # Build

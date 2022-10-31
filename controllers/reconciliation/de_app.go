@@ -8,6 +8,9 @@ import (
 )
 
 func (r *ReconcileManager) reconcileDeApp(ctx context.Context, image string, req ctrl.Request) error {
-	time.Sleep(2 * time.Second)
+	r.Log.Info("Starting DeApp reconciliation flow")
+	time.Sleep(time.Second * 5)
+	r.Log.Info("Finished DeApp reconciliation flow")
+
 	return nil
 }

@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,8 +27,33 @@ import (
 type EntandoAppV2Spec struct {
 	// Version is the field used to upgrade version of EntandoApp
 	Version string `json:"version"`
-	// ImagesOverride is a map usefull to override EntandoApp component images
-	ImagesOverride map[string]string `json:"imagesOverride,omitempty"`
+	// used to add Environment Variables to all EntandoApp components
+	CommonEnvironmentVariables []corev1.EnvVar `json:"commonEnvironmentVariables,omitempty"`
+	// Section used to configure AppBuilder
+	AppBuilder AppBuilder `json:"appBuilder,omitempty"`
+	// Section used to configure ComponentManager
+	ComponentManager ComponentManager `json:"componentManager,omitempty"`
+	// Section used to configure DeApp
+	DeApp DeApp `json:"deApp,omitempty"`
+	// Section used to configure Keycloak
+	Keycloak Keycloak `json:"keycloak,omitempty"`
+}
+type EntandoComponent struct {
+	// used to override the component image
+	ImageOverride string `json:"imageOverride,omitempty"`
+	// used to add Environment Variables to component
+	EnvironmentVariables []corev1.EnvVar `json:"environmentVariables,omitempty"`
+}
+
+type AppBuilder EntandoComponent
+
+type ComponentManager EntandoComponent
+
+type DeApp EntandoComponent
+
+type Keycloak struct {
+	EntandoComponent `json:"commonComponentConfigs,omitempty"`
+	ExternalService  bool `json:"externalService,omitempty"`
 }
 
 // EntandoAppV2Status defines the observed state of EntandoAppV2

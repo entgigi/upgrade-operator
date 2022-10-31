@@ -45,6 +45,8 @@ type EntandoAppV2Reconciler struct {
 //+kubebuilder:rbac:groups=app.entando.org,resources=entandoappv2s,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=app.entando.org,resources=entandoappv2s/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=app.entando.org,resources=entandoappv2s/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=deployments,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="",resources=csvs,verbs=get;list;watch;create;update;patch;delete
 
 func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithName(controllerLogName)
@@ -60,35 +62,19 @@ func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// indicated by the deletion timestamp being set.
 	isEntandoAppV2MarkedToBeDeleted := entandoAppV2.GetDeletionTimestamp() != nil
 	if isEntandoAppV2MarkedToBeDeleted {
-		if controllerutil.ContainsFinalizer(&entandoAppV2, entandoAppFinalizer) {
-			// Run finalization logic for entandoAppFinalizer. If the
-			// finalization logic fails, don't remove the finalizer so
-			// that we can retry during the next reconciliation.
-			if err := r.finalizeEntandoApp(log, &entandoAppV2); err != nil {
-				return ctrl.Result{}, err
-			}
-
-			// Remove entandoAppFinalizer. Once all finalizers have been
-			// removed, the object will be deleted.
-			controllerutil.RemoveFinalizer(&entandoAppV2, entandoAppFinalizer)
-			err := r.Update(ctx, &entandoAppV2)
-			if err != nil {
-				return ctrl.Result{}, err
-			}
+		if err := r.removeFinalizer(ctx, &entandoAppV2, log); err != nil {
+			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
 	}
 
 	// Add finalizer for this CR
-	if !controllerutil.ContainsFinalizer(&entandoAppV2, entandoAppFinalizer) {
-		controllerutil.AddFinalizer(&entandoAppV2, entandoAppFinalizer)
-		err = r.Update(ctx, &entandoAppV2)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
+	err = r.addFinalizer(ctx, &entandoAppV2)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
-	manager := reconciliation.NewReconcileManager(r.Client, r.Log, r.Scheme)
+	manager := reconciliation.NewReconcileManager(r.Client, r.Log)
 	if err = manager.MainReconcile(ctx, req); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -118,5 +104,33 @@ func (r *EntandoAppV2Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 // =====================================================================
 func (r *EntandoAppV2Reconciler) finalizeEntandoApp(log logr.Logger, m *v1alpha1.EntandoAppV2) error {
 	log.Info("Successfully finalized entandoApp")
+	return nil
+}
+
+func (r *EntandoAppV2Reconciler) addFinalizer(ctx context.Context, entandoAppV2 *v1alpha1.EntandoAppV2) error {
+	if !controllerutil.ContainsFinalizer(entandoAppV2, entandoAppFinalizer) {
+		controllerutil.AddFinalizer(entandoAppV2, entandoAppFinalizer)
+		return r.Update(ctx, entandoAppV2)
+	}
+	return nil
+}
+
+func (r *EntandoAppV2Reconciler) removeFinalizer(ctx context.Context, entandoAppV2 *v1alpha1.EntandoAppV2, log logr.Logger) error {
+	if controllerutil.ContainsFinalizer(entandoAppV2, entandoAppFinalizer) {
+		// Run finalization logic for entandoAppFinalizer. If the
+		// finalization logic fails, don't remove the finalizer so
+		// that we can retry during the next reconciliation.
+		if err := r.finalizeEntandoApp(log, entandoAppV2); err != nil {
+			return err
+		}
+
+		// Remove entandoAppFinalizer. Once all finalizers have been
+		// removed, the object will be deleted.
+		controllerutil.RemoveFinalizer(entandoAppV2, entandoAppFinalizer)
+		err := r.Update(ctx, entandoAppV2)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
