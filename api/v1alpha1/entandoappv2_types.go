@@ -45,11 +45,20 @@ type EntandoComponent struct {
 	EnvironmentVariables []corev1.EnvVar `json:"environmentVariables,omitempty"`
 }
 
-type AppBuilder EntandoComponent
+type AppBuilder struct {
+	// Empty JSON tag is needed to avoid the error 'encountered struct field "" without JSON tag'
+	EntandoComponent `json:",omitempty"`
+}
 
-type ComponentManager EntandoComponent
+type ComponentManager struct {
+	// Empty JSON tag is needed to avoid the error 'encountered struct field "" without JSON tag'
+	EntandoComponent `json:",omitempty"`
+}
 
-type DeApp EntandoComponent
+type DeApp struct {
+	// Empty JSON tag is needed to avoid the error 'encountered struct field "" without JSON tag'
+	EntandoComponent `json:",omitempty"`
+}
 
 type Keycloak struct {
 	// Empty JSON tag is needed to avoid the error 'encountered struct field "" without JSON tag'
