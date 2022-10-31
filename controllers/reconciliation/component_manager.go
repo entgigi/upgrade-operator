@@ -2,6 +2,7 @@ package reconciliation
 
 import (
 	"context"
+
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/utils"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -17,6 +18,8 @@ func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image 
 	if err != nil {
 		return err
 	}
+
+	deployment.Spec.Template.Spec.Containers[0].Image = image
 
 	deployment.Spec.Template.Spec.Containers[0].Image = image
 
