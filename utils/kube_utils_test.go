@@ -2,11 +2,12 @@ package utils
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"testing"
 )
 
 func TestShouldConvertAnEnvVarSliceToMap(t *testing.T) {
@@ -39,12 +40,13 @@ func TestShouldConvertAnEnvVarSliceToMap(t *testing.T) {
 	}
 	appCMEnvVars := []corev1.EnvVar{appCMEnvVar1, appCMEnvVar2, appCMEnvVar3}
 
+	componentManager := v1alpha1.ComponentManager{}
+	componentManager.EnvironmentVariables = appCMEnvVars
+
 	appV2 := v1alpha1.EntandoAppV2{
 		Spec: v1alpha1.EntandoAppV2Spec{
 			CommonEnvironmentVariables: appCommonEnvVars,
-			ComponentManager: v1alpha1.ComponentManager{
-				EnvironmentVariables: appCMEnvVars,
-			},
+			ComponentManager:           componentManager,
 		},
 	}
 
