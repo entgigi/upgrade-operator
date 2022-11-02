@@ -2,9 +2,11 @@ package reconciliation
 
 import (
 	"context"
+
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/entgigi/upgrade-operator.git/legacy"
+	"github.com/entgigi/upgrade-operator.git/utils"
 	"github.com/go-logr/logr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -38,38 +40,53 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 	r.statusUpdater.SetReconcileStarted(ctx, req.NamespacedName, numberOfSteps)
 
 	var err error
-	cr := &v1alpha1.EntandoAppV2{}
-	if err := r.Client.Get(ctx, req.NamespacedName, cr); err != nil {
+	crReadOnly := &v1alpha1.EntandoAppV2{}
+	if err := r.Client.Get(ctx, req.NamespacedName, crReadOnly); err != nil {
 		return err
 	}
-	images := r.fetchImages(*cr)
+
+	imageManager := common.NewImageManager(r.Log)
+	images := imageManager.FetchAndComposeImagesMap(*crReadOnly)
+	//r.Log.Info(fmt.Sprintf("%+v\n", images))
 
 	//TODO reconcile secrets for ca before EntandoApp components
 
-	if _, err = r.reconcileComponent(ctx, req, "Keycloak", r.reconcileKeycloak, images.FetchKeycloak(), cr); err != nil {
+	if _, err = r.reconcileComponent(ctx, req, "Keycloak", r.reconcileKeycloak, images.FetchKeycloak(), crReadOnly); err != nil {
 		return err
 	}
 
-	if _, err = r.reconcileComponent(ctx, req, "DeApp", r.reconcileDeApp, images.FetchDeApp(), cr); err != nil {
+	if _, err = r.reconcileComponent(ctx, req, "DeApp", r.reconcileDeApp, images.FetchDeApp(), crReadOnly); err != nil {
 		return err
 	}
 
-	if _, err = r.reconcileComponent(ctx, req, "AppBuilder", r.reconcileAppBuilder, images.FetchAppBuilder(), cr); err != nil {
+	if _, err = r.reconcileComponent(ctx, req, "AppBuilder", r.reconcileAppBuilder, images.FetchAppBuilder(), crReadOnly); err != nil {
 		return err
 	}
 
 	// TODO before check entando-k8s-service app ready
-	if cr, err = r.reconcileComponent(ctx, req, "ComponentManager", r.reconcileComponentManager, images.FetchComponentManager(), cr); err != nil {
+	cr := &v1alpha1.EntandoAppV2{}
+	if cr, err = r.reconcileComponent(ctx, req, "ComponentManager", r.reconcileComponentManager, images.FetchComponentManager(), crReadOnly); err != nil {
 		return err
 	}
 
+	// =========================== start legacy section ===========================
 	// progress step not added because is not a business step but jsut technical
-	r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "Csv")
-	csvReconcile := legacy.NewLegacyReconcileManager(r.Client, r.Log)
-	if err = csvReconcile.ReconcileClusterServiceVersion(ctx, req, images); err != nil {
-		r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "CsvReconciliationFailed")
-		return err
+	if utils.IsOlmInstallation() {
+		r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "Csv")
+		legacyReconcile := legacy.NewLegacyReconcileManager(r.Client, r.Log)
+		if err = legacyReconcile.ReconcileClusterServiceVersion(ctx, req, images); err != nil {
+			r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "CsvReconciliationFailed")
+			return err
+		}
+	} else {
+		r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "ImageInfo")
+		legacyReconcile := legacy.NewLegacyReconcileManager(r.Client, r.Log)
+		if err = legacyReconcile.ReconcileImageInfo(ctx, req, images); err != nil {
+			r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "ImageInfoReconciliationFailed")
+			return err
+		}
 	}
+	// =========================== end legacy section =============================
 
 	// Check for progress/total mismatch
 	if cr.Status.Progress != numberOfSteps {
@@ -95,29 +112,4 @@ func (r *ReconcileManager) reconcileComponent(ctx context.Context,
 		return nil, err
 	}
 	return r.statusUpdater.IncrementProgress(ctx, req.NamespacedName)
-}
-
-// fetchImages fetch and return the images to update to
-func (r *ReconcileManager) fetchImages(entandoAppV2 v1alpha1.EntandoAppV2) common.EntandoAppImages {
-
-	imageManager := &common.ImageManager{Log: r.Log}
-	images := imageManager.FetchImagesByAppVersion(entandoAppV2.Spec.Version)
-	if images == nil {
-		images = common.EntandoAppImages{}
-		r.Log.Info("The catalog does not contain the requested App Version ",
-			"version", entandoAppV2.Spec.Version)
-	}
-
-	images[common.AppBuilderKey] = entandoAppV2.Spec.AppBuilder.ImageOverride
-	images[common.ComponentManagerKey] = entandoAppV2.Spec.ComponentManager.ImageOverride
-	images[common.DeAppKey] = entandoAppV2.Spec.DeApp.ImageOverride
-	images[common.KeycloakKey] = entandoAppV2.Spec.Keycloak.ImageOverride
-
-	r.Log.Info("image", "appbuilder", images.FetchAppBuilder())
-	r.Log.Info("image", "cm", images.FetchComponentManager())
-	r.Log.Info("image", "de-app", images.FetchDeApp())
-	r.Log.Info("image", "kc", images.FetchKeycloak())
-
-	return images
-
 }

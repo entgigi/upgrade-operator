@@ -17,7 +17,10 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: EntandoAppV2 is the Schema for the entandoappv2s API
+        description: An EntandoAppV2 deploys the components required to upgrade an
+          Entando App. The server side components that are deployed include the Entando
+          App Engine, the Entando Component Manager, the Entando App Builder, and
+          the user facing application.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation

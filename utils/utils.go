@@ -2,8 +2,9 @@ package utils
 
 import (
 	"fmt"
-	corev1 "k8s.io/api/core/v1"
 	"os"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 func CopyMap(m map[string]interface{}) map[string]interface{} {
@@ -32,6 +33,16 @@ func GetWatchNamespace() (string, error) {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
 	return ns, nil
+}
+
+func IsOlmInstallation() bool {
+	var operatorTypeEnvVar = "ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE"
+
+	operatorType, found := os.LookupEnv(operatorTypeEnvVar)
+	if !found || operatorType == "olm" {
+		return true
+	}
+	return false
 }
 
 // TODO make more generic with interface parameter

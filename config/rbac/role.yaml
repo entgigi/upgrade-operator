@@ -8,18 +8,6 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - csvs
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
   - deployments
   verbs:
   - create
@@ -55,3 +43,15 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - operators.coreos.com
+  resources:
+  - clusterserviceversions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch

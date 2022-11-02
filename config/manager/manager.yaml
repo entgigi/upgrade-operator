@@ -68,6 +68,11 @@ spec:
             cpu: 10m
             memory: 64Mi
         env:
+          - name: ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE
+            # OLM
+            value: "olm"
+            # non OLM
+            #value: "community"
           - name: WATCH_NAMESPACE
             valueFrom:
               fieldRef:

@@ -19,9 +19,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/entgigi/upgrade-operator.git/utils"
 	"os"
 	goruntime "runtime"
+
+	"github.com/entgigi/upgrade-operator.git/utils"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -32,6 +33,7 @@ import (
 
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/entgigi/upgrade-operator.git/controllers"
+	csv "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -48,7 +50,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
+	utilruntime.Must(csv.AddToScheme(scheme))
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
