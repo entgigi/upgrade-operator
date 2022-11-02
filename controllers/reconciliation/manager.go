@@ -88,6 +88,19 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 	}
 	// =========================== end legacy section =============================
 
+	// reconcile k8s-service component taking into account of the legacy Operator behavior,
+	// in non-olm install we need to reconcile k8s-service deployment
+	if !utils.IsOlmInstallation() {
+		// K8sService
+		r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "K8sService")
+		if err = r.reconcileK8sService(ctx, req, images.FetchK8sService(), *crReadOnly); err != nil {
+			r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "K8sServiceReconciliationFailed")
+			return err
+		}
+		// K8sCoordinator restart ?
+
+	}
+
 	// Check for progress/total mismatch
 	if cr.Status.Progress != numberOfSteps {
 		r.Log.Info("WARNING: progress different from total at the end of reconciliation", "progress", cr.Status.Progress, "total", numberOfSteps)

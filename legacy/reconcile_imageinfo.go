@@ -50,6 +50,10 @@ func (r *LegacyReconcileManager) ReconcileImageInfo(ctx context.Context, req ctr
 			configMap.Data[key] = buildNewValue(value, appImages.FetchKeycloak())
 		case key == "entando-k8s-service":
 			configMap.Data[key] = buildNewValue(value, appImages.FetchK8sService())
+		case key == "entando-k8s-plugin-controller":
+			configMap.Data[key] = buildNewValue(value, appImages.FetchK8sPluginController())
+		case key == "entando-k8s-app-plugin-link-controller":
+			configMap.Data[key] = buildNewValue(value, appImages.FetchK8sAppPluginLinkController())
 		}
 	}
 

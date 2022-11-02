@@ -51,6 +51,16 @@ func (e EntandoAppImages) FetchK8sService() string {
 	return k
 }
 
+func (e EntandoAppImages) FetchK8sPluginController() string {
+	k, _ := e[K8sPluginController].(string)
+	return k
+}
+
+func (e EntandoAppImages) FetchK8sAppPluginLinkController() string {
+	k, _ := e[K8sAppPluginLinkController].(string)
+	return k
+}
+
 type EntandoAppList map[string]EntandoAppImages
 
 // TODO read from yaml ???
@@ -71,6 +81,10 @@ var apps = EntandoAppList{
 		KeycloakKey: "registry.hub.docker.com/entando/entando-keycloak@sha256:e251ba0bf83c529bd1818d4b78cc74ed25b6573d8dc55f59d72b86194932c3ac",
 		// "registry.hub.docker.com/entando/entando-k8s-service:7.0.2"
 		K8sService: "registry.hub.docker.com/entando/entando-k8s-service@sha256:d1e022d6c1eb1f20268372493115fb34066b52245995eee11b77b7c36bc66431",
+		// "registry.hub.docker.com/entando/entando-k8s-plugin-controller:7.0.2"
+		K8sPluginController: "registry.hub.docker.com/entando/entando-k8s-plugin-controller@sha256:8fa2a1f44ca9b94797bb5d65d409c58d924cabb60dada6bd2cb1a654adf605e3",
+		// "registry.hub.docker.com/entando/entando-k8s-app-plugin-link-controller:7.0.2"
+		K8sAppPluginLinkController: "registry.hub.docker.com/entando/entando-k8s-app-plugin-link-controller@sha256:bf71073f3e4d6c6815cbdc582a984695b5944cf3c82e603386a96bc0a1b4bd74",
 	},
 	"7.1.0": EntandoAppImages{
 		// "registry.hub.docker.com/entando/app-builder:7.1.0"
@@ -87,6 +101,10 @@ var apps = EntandoAppList{
 		KeycloakKey: "registry.hub.docker.com/entando/entando-keycloak@sha256:e251ba0bf83c529bd1818d4b78cc74ed25b6573d8dc55f59d72b86194932c3ac",
 		// "registry.hub.docker.com/entando/entando-k8s-service:7.1.0"
 		K8sService: "registry.hub.docker.com/entando/entando-k8s-service@sha256:d7f953ae5627f35a22ee1264e2017f8965b7db6df788a2d2d80e5be82eb7d52b",
+		// "registry.hub.docker.com/entando/entando-k8s-plugin-controller:7.1.0"
+		K8sPluginController: "registry.hub.docker.com/entando/entando-k8s-plugin-controller@sha256:fd58e7d59a20643735b9bbae6dac8d3b9f2f44c494c674ba13dd0bcc40bf66a9",
+		// "registry.hub.docker.com/entando/entando-k8s-app-plugin-link-controller:7.1.0"
+		K8sAppPluginLinkController: "registry.hub.docker.com/entando/entando-k8s-app-plugin-link-controller@sha256:d9e9cdcbf2abec4b0d1253955d4dffd01de284d32f40ac42ec18aa3e94e32db4",
 	},
 	"7.1.1": EntandoAppImages{
 		// "registry.hub.docker.com/entando/app-builder:7.1.1"
@@ -103,6 +121,10 @@ var apps = EntandoAppList{
 		KeycloakKey: "registry.hub.docker.com/entando/entando-keycloak@sha256:4b5b81a6f233e070a747541ec1fa30cdaeca78feefa1542cb117aaaf2079863c",
 		// "registry.hub.docker.com/entando/entando-k8s-service:7.1.1"
 		K8sService: "registry.hub.docker.com/entando/entando-k8s-service@sha256:df0473993a7eb6dd71fd06dcd3b31efebd470e9c9962fb2ccc85e6ee356de3cd",
+		// "registry.hub.docker.com/entando/entando-k8s-plugin-controller:7.1.1"
+		K8sPluginController: "registry.hub.docker.com/entando/entando-k8s-plugin-controller@sha256:1084d03bd9ecf2a720390b7e1543f60b43c4baa523b97a85e7e54590d81d2574",
+		// "registry.hub.docker.com/entando/entando-k8s-app-plugin-link-controller:7.1.0"
+		K8sAppPluginLinkController: "registry.hub.docker.com/entando/entando-k8s-app-plugin-link-controller@sha256:d9e9cdcbf2abec4b0d1253955d4dffd01de284d32f40ac42ec18aa3e94e32db4",
 	},
 }
 
@@ -145,12 +167,20 @@ func (r *ImageManager) FetchAndComposeImagesMap(entandoAppV2 v1alpha1.EntandoApp
 	if len(entandoAppV2.Spec.K8sService.ImageOverride) > 0 {
 		images[K8sService] = entandoAppV2.Spec.K8sService.ImageOverride
 	}
+	if len(entandoAppV2.Spec.K8sPluginController.ImageOverride) > 0 {
+		images[K8sPluginController] = entandoAppV2.Spec.K8sPluginController.ImageOverride
+	}
+	if len(entandoAppV2.Spec.K8sAppPluginLinkController.ImageOverride) > 0 {
+		images[K8sAppPluginLinkController] = entandoAppV2.Spec.K8sAppPluginLinkController.ImageOverride
+	}
 
 	r.Log.Info("image", "app-builder", images.FetchAppBuilder())
 	r.Log.Info("image", "component-manager", images.FetchComponentManager())
 	r.Log.Info("image", "de-app", images.FetchDeApp())
 	r.Log.Info("image", "keycloak", images.FetchKeycloak())
 	r.Log.Info("image", "k8s-service", images.FetchK8sService())
+	r.Log.Info("image", "k8s-plugin-controller", images.FetchK8sPluginController())
+	r.Log.Info("image", "k8s-app-plugin-link-controller", images.FetchK8sAppPluginLinkController())
 
 	return images
 }

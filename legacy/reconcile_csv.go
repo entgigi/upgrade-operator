@@ -38,9 +38,11 @@ func (r *LegacyReconcileManager) ReconcileClusterServiceVersion(ctx context.Cont
 	}
 
 	if csv != nil {
-		setRelatedImages(csv, appImages)
+		r.setRelatedImages(csv, appImages)
 
 		r.setCoordinatorEnvs(csv, appImages)
+
+		r.setK8sServiceDeployment(csv, appImages)
 
 		//r.Log.Info(fmt.Sprintf("%+v\n", *csv))
 
@@ -55,7 +57,7 @@ func (r *LegacyReconcileManager) ReconcileClusterServiceVersion(ctx context.Cont
 	return nil
 }
 
-func setRelatedImages(csv *csv.ClusterServiceVersion, appImages common.EntandoAppImages) {
+func (r *LegacyReconcileManager) setRelatedImages(csv *csv.ClusterServiceVersion, appImages common.EntandoAppImages) {
 	for i, entry := range csv.Spec.RelatedImages {
 		switch {
 		case entry.Name == "app-builder-6-4":
@@ -68,12 +70,16 @@ func setRelatedImages(csv *csv.ClusterServiceVersion, appImages common.EntandoAp
 			csv.Spec.RelatedImages[i].Image = appImages.FetchKeycloak()
 		case entry.Name == "entando-k8s-service":
 			csv.Spec.RelatedImages[i].Image = appImages.FetchK8sService()
+		case entry.Name == "entando-k8s-plugin-controller":
+			csv.Spec.RelatedImages[i].Image = appImages.FetchK8sPluginController()
+		case entry.Name == "entando-k8s-app-plugin-link-controller":
+			csv.Spec.RelatedImages[i].Image = appImages.FetchK8sAppPluginLinkController()
 		}
 	}
 }
 
 func (r *LegacyReconcileManager) setCoordinatorEnvs(csv *csv.ClusterServiceVersion, appImages common.EntandoAppImages) {
-	for _, deploy := range (*csv).Spec.InstallStrategy.StrategySpec.DeploymentSpecs {
+	for j, deploy := range (*csv).Spec.InstallStrategy.StrategySpec.DeploymentSpecs {
 		if deploy.Name == "entando-operator" {
 			r.Log.Info("ClusterServiceVersion deployment entando-operator found")
 			for i, env := range deploy.Spec.Template.Spec.Containers[0].Env {
@@ -86,18 +92,38 @@ func (r *LegacyReconcileManager) setCoordinatorEnvs(csv *csv.ClusterServiceVersi
 							"newVersion",
 							appImages.FetchAppBuilder())
 					*/
-					deploy.Spec.Template.Spec.Containers[0].Env[i].Value = appImages.FetchAppBuilder()
+					setCsvEnvValue(csv, appImages.FetchAppBuilder(), j, i)
 				case env.Name == "RELATED_IMAGE_ENTANDO_COMPONENT_MANAGER_6_4":
-					deploy.Spec.Template.Spec.Containers[0].Env[i].Value = appImages.FetchComponentManager()
+					setCsvEnvValue(csv, appImages.FetchComponentManager(), j, i)
 				case env.Name == "RELATED_IMAGE_ENTANDO_DE_APP_EAP_6_4":
-					deploy.Spec.Template.Spec.Containers[0].Env[i].Value = appImages.FetchDeApp()
+					setCsvEnvValue(csv, appImages.FetchDeApp(), j, i)
 				case env.Name == "RELATED_IMAGE_ENTANDO_REDHAT_SSO":
-					deploy.Spec.Template.Spec.Containers[0].Env[i].Value = appImages.FetchKeycloak()
+					setCsvEnvValue(csv, appImages.FetchKeycloak(), j, i)
 				case env.Name == "RELATED_IMAGE_ENTANDO_K8S_SERVICE":
-					deploy.Spec.Template.Spec.Containers[0].Env[i].Value = appImages.FetchK8sService()
+					setCsvEnvValue(csv, appImages.FetchK8sService(), j, i)
+				case env.Name == "RELATED_IMAGE_ENTANDO_K8S_PLUGIN_CONTROLLER":
+					setCsvEnvValue(csv, appImages.FetchK8sPluginController(), j, i)
+				case env.Name == "RELATED_IMAGE_ENTANDO_K8S_APP_PLUGIN_LINK_CONTROLLER":
+					setCsvEnvValue(csv, appImages.FetchK8sAppPluginLinkController(), j, i)
 				}
 			}
 		}
 	}
 	//r.Log.Info(fmt.Sprintf("\n%+v\n\n", *csv))
+}
+
+// TODO verify range copy
+func setCsvEnvValue(csv *csv.ClusterServiceVersion, image string, indexDeployment int, indexEnv int) {
+	(*csv).Spec.InstallStrategy.StrategySpec.DeploymentSpecs[indexDeployment].
+		Spec.Template.Spec.Containers[0].Env[indexEnv].Value = image
+}
+
+func (r *LegacyReconcileManager) setK8sServiceDeployment(csv *csv.ClusterServiceVersion, appImages common.EntandoAppImages) {
+	for j, deploy := range (*csv).Spec.InstallStrategy.StrategySpec.DeploymentSpecs {
+		if deploy.Name == "entando-k8s-service" {
+			r.Log.Info("ClusterServiceVersion deployment entando-k8s-service found")
+			(*csv).Spec.InstallStrategy.StrategySpec.DeploymentSpecs[j].
+				Spec.Template.Spec.Containers[0].Image = appImages.FetchK8sService()
+		}
+	}
 }

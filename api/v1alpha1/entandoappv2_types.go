@@ -41,6 +41,10 @@ type EntandoAppV2Spec struct {
 	Keycloak Keycloak `json:"keycloak,omitempty"`
 	// Section used to configure k8s-service
 	K8sService K8sService `json:"k8sService,omitempty"`
+	// Section used to configure legacy operator plugin-controller
+	K8sPluginController K8sPluginController `json:"k8sPluginController,omitempty"`
+	// Section used to configure legacy operator app-plugin-link-controller
+	K8sAppPluginLinkController K8sAppPluginLinkController `json:"k8sAppPluginLinkController,omitempty"`
 }
 type EntandoComponent struct {
 	// used to override the component image
@@ -71,6 +75,14 @@ type Keycloak struct {
 }
 
 type K8sService struct {
+	EntandoComponent `json:",omitempty"`
+}
+
+type K8sPluginController struct {
+	EntandoComponent `json:",omitempty"`
+}
+
+type K8sAppPluginLinkController struct {
 	EntandoComponent `json:",omitempty"`
 }
 
