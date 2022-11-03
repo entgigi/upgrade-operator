@@ -507,6 +507,9 @@ spec:
                     description: used to override the component image
                     type: string
                 type: object
+              entandoAppName:
+                description: EntandoAppName is the name of the EntandoApp CR to update
+                type: string
               keycloak:
                 description: Section used to configure Keycloak
                 properties:

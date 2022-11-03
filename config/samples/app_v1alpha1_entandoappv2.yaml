@@ -3,7 +3,8 @@ kind: EntandoAppV2
 metadata:
   name: entando-app-v2-sample
 spec:
-  version: 7.1.1
+  version: 7.1.0
+  entandoAppName: my-app
   commonEnvironmentVariables:
     - name: CUSTOM_ENV
       value: test
@@ -20,4 +21,7 @@ spec:
         value: test
       - name: TO_OVERRIDE_2
         value: SUCCESS
-    imageOverride: "test/test:12"
+    # 7.1.0
+    imageOverride: "entando/entando-component-manager@sha256:7dfb73e37b14396450c695bcaa2b3a3a0b06b1cdfcbdad72d1d50e3150d387e4"
+    # 7.1.1
+    #imageOverride: "entando/entando-component-manager@sha256:13d9ba8a9a3cb52f4f999ece27f3ba8470fabd77a8c31290b5fdcc615e1dff11"

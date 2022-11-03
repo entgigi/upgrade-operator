@@ -2,13 +2,10 @@ package reconciliation
 
 import (
 	"context"
-
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/entgigi/upgrade-operator.git/legacy"
 	"github.com/go-logr/logr"
-	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -23,7 +20,7 @@ type ReconcileManager struct {
 	statusUpdater *StatusUpdater
 }
 
-type ReconcileComponentFunc func(ctx context.Context, image string, req ctrl.Request) error
+type ReconcileComponentFunc func(ctx context.Context, image string, req ctrl.Request, cr *v1alpha1.EntandoAppV2) error
 
 // NewReconcileManager initialize a ReconcileManager
 func NewReconcileManager(client client.Client, log logr.Logger) *ReconcileManager {
@@ -49,20 +46,20 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 
 	//TODO reconcile secrets for ca before EntandoApp components
 
-	if _, err = r.reconcileComponent(ctx, req, "Keycloak", r.reconcileKeycloak, images.FetchKeycloak()); err != nil {
+	if _, err = r.reconcileComponent(ctx, req, "Keycloak", r.reconcileKeycloak, images.FetchKeycloak(), cr); err != nil {
 		return err
 	}
 
-	if _, err = r.reconcileComponent(ctx, req, "DeApp", r.reconcileDeApp, images.FetchDeApp()); err != nil {
+	if _, err = r.reconcileComponent(ctx, req, "DeApp", r.reconcileDeApp, images.FetchDeApp(), cr); err != nil {
 		return err
 	}
 
-	if _, err = r.reconcileComponent(ctx, req, "AppBuilder", r.reconcileAppBuilder, images.FetchAppBuilder()); err != nil {
+	if _, err = r.reconcileComponent(ctx, req, "AppBuilder", r.reconcileAppBuilder, images.FetchAppBuilder(), cr); err != nil {
 		return err
 	}
 
 	// TODO before check entando-k8s-service app ready
-	if cr, err = r.reconcileComponent(ctx, req, "ComponentManager", r.reconcileComponentManager, images.FetchComponentManager()); err != nil {
+	if cr, err = r.reconcileComponent(ctx, req, "ComponentManager", r.reconcileComponentManager, images.FetchComponentManager(), cr); err != nil {
 		return err
 	}
 
@@ -89,10 +86,11 @@ func (r *ReconcileManager) reconcileComponent(ctx context.Context,
 	req ctrl.Request,
 	componentName string,
 	reconcile ReconcileComponentFunc,
-	imageUrl string) (*v1alpha1.EntandoAppV2, error) {
+	imageUrl string,
+	cr *v1alpha1.EntandoAppV2) (*v1alpha1.EntandoAppV2, error) {
 
 	r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, componentName)
-	if err := reconcile(ctx, imageUrl, req); err != nil {
+	if err := reconcile(ctx, imageUrl, req, cr); err != nil {
 		r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, componentName+"ReconciliationFailed")
 		return nil, err
 	}
@@ -122,13 +120,4 @@ func (r *ReconcileManager) fetchImages(entandoAppV2 v1alpha1.EntandoAppV2) commo
 
 	return images
 
-}
-
-func (r *ReconcileManager) getDeployment(ctx context.Context, namespace string, deploymentName string) (appsv1.Deployment, error) {
-	deployment := appsv1.Deployment{}
-	lookupKey := types.NamespacedName{Namespace: namespace, Name: deploymentName}
-
-	err := r.Get(ctx, lookupKey, &deployment)
-
-	return deployment, err
 }
