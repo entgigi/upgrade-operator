@@ -27,6 +27,8 @@ import (
 type EntandoAppV2Spec struct {
 	// Version is the field used to upgrade version of EntandoApp
 	Version string `json:"version"`
+	// EntandoAppName is the name of the EntandoApp CR to update
+	EntandoAppName string `json:"entandoAppName,omitempty"`
 	// used to add Environment Variables to all EntandoApp components
 	CommonEnvironmentVariables []corev1.EnvVar `json:"commonEnvironmentVariables,omitempty"`
 	// Section used to configure AppBuilder
