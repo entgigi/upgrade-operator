@@ -47,7 +47,7 @@ func (r *LegacyReconcileManager) ReconcileImageInfo(ctx context.Context, req ctr
 		case "entando-de-app-wildfly-6-4":
 			err = r.buildAndSetNewValue(configMap, key, value, appImages.FetchDeApp())
 
-		case "entando-k8s-keycloak-controller":
+		case "entando-keycloak":
 			err = r.buildAndSetNewValue(configMap, key, value, appImages.FetchKeycloak())
 
 		case "entando-k8s-service":
