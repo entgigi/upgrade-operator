@@ -2,15 +2,9 @@ package reconciliation
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/utils"
-<<<<<<< HEAD
-=======
-	appsv1 "k8s.io/api/apps/v1"
->>>>>>> 48b1b37 (revert disabled reconciler)
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -27,8 +21,7 @@ func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image 
 
 	deployment.Spec.Template.Spec.Containers[0].Image = image
 
-
-	envVars := utils.MergeEnvVars(cr, deployment)
+	envVars := utils.MergeEnvVars(*cr, deployment)
 	deployment.Spec.Template.Spec.Containers[0].Env = envVars
 
 	if err := r.Update(ctx, deployment); err != nil {
