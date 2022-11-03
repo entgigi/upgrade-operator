@@ -47,7 +47,11 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	imageManager := service.NewImageManager(r.Log)
-	images := imageManager.FetchAndComposeImagesMap(*crReadOnly)
+	var images service.EntandoAppImages
+
+	if images, err = imageManager.FetchAndComposeImagesMap(*crReadOnly); err != nil {
+		return err
+	}
 	//r.Log.Info(fmt.Sprintf("%+v\n", images))
 
 	//TODO reconcile secrets for ca before EntandoApp components
@@ -94,9 +98,9 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 	if !utils.IsOlmInstallation() {
 		// K8sService
 		r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "K8sService")
-		
+
 		// TODO decide if add the k8service in the progress count. in that case we could also consider to adapt the k8s-service reconciliation function to the standard format
-		
+
 		if err = r.reconcileK8sService(ctx, req, images.FetchK8sService(), *crReadOnly); err != nil {
 			r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "K8sServiceReconciliationFailed")
 			return err

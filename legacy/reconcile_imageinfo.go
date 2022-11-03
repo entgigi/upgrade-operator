@@ -121,7 +121,11 @@ func composeNewValue(oldValue ImageInfoEntry, image service.ImageInfo) ImageInfo
 	oldValue.Registry = image.Hostname()
 	oldValue.Organization = image.Org()
 	oldValue.Repository = image.Name()
-	oldValue.Version = image.Digest()
+	if image.IsTag() {
+		oldValue.Version = image.Tag()
+	} else {
+		oldValue.Version = image.Digest()
+	}
 	return oldValue
 }
 

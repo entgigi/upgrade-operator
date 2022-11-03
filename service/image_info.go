@@ -42,13 +42,13 @@ func (i ImageInfo) Hostname() string {
 }
 
 func (i ImageInfo) IsTag() bool {
-	_, isTag := i.Reference.(ref.Tagged)
+	_, isTag := i.Reference.(ref.NamedTagged)
 	return isTag
 }
 
 func (i ImageInfo) Tag() string {
-	tag, _ := i.Reference.(ref.Tagged)
-	return tag.String()
+	tag, _ := i.Reference.(ref.NamedTagged)
+	return tag.Tag()
 }
 
 func (i ImageInfo) IsDigest() bool {
