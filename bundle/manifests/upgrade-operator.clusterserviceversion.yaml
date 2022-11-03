@@ -1,0 +1,252 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "app.entando.org/v1alpha1",
+          "kind": "EntandoAppV2",
+          "metadata": {
+            "name": "entando-app-v2-sample"
+          },
+          "spec": {
+            "version": "7.1.1"
+          }
+        }
+      ]
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v1.23.0
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
+  name: upgrade-operator.v0.0.1
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: An EntandoAppV2 deploys the components required to upgrade an Entando
+        App. The server side components that are deployed include the Entando App
+        Engine, the Entando Component Manager, the Entando App Builder, and the user
+        facing application.
+      displayName: Entando App V2
+      kind: EntandoAppV2
+      name: entandoappv2s.app.entando.org
+      version: v1alpha1
+  description: |
+    ## Entando
+    The Entando platform accelerates the development and lifecycle management of fully modularized applications on Kubernetes. It provides tools to help developers create and manage applications using modular frontend and backend components.
+    The Entando Upgrade Operator automates the upgrading and configuration management of the components that make up an Entando application. Specifically, the operator manages the following custom resources: **EntandoAppV2** for upgrading an Entando application. EntandoAppV2 are hosted on Wildfly or JBoss EAP containers, and can also be used to deploy custom EntandoApp containers.
+  displayName: Entando Upgrade Operator
+  icon:
+  - base64data: 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
+    mediatype: image/png
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - deployments
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - app.entando.org
+          resources:
+          - entandoappv2s
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - app.entando.org
+          resources:
+          - entandoappv2s/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - app.entando.org
+          resources:
+          - entandoappv2s/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - operators.coreos.com
+          resources:
+          - clusterserviceversions
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - authentication.k8s.io
+          resources:
+          - tokenreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
+          verbs:
+          - create
+        serviceAccountName: upgrade-operator-controller-manager
+      deployments:
+      - label:
+          control-plane: controller-manager
+        name: upgrade-operator-controller-manager
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              control-plane: controller-manager
+          strategy: {}
+          template:
+            metadata:
+              annotations:
+                kubectl.kubernetes.io/default-container: manager
+              labels:
+                control-plane: controller-manager
+            spec:
+              containers:
+              - args:
+                - --secure-listen-address=0.0.0.0:8443
+                - --upstream=http://127.0.0.1:8080/
+                - --logtostderr=true
+                - --v=0
+                image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
+                name: kube-rbac-proxy
+                ports:
+                - containerPort: 8443
+                  name: https
+                  protocol: TCP
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 128Mi
+                  requests:
+                    cpu: 5m
+                    memory: 64Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+              - args:
+                - --health-probe-bind-address=:8081
+                - --metrics-bind-address=127.0.0.1:8080
+                - --leader-elect
+                command:
+                - /manager
+                env:
+                - name: ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE
+                  value: olm
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
+                image: gigiozzz/upgrade-operator:0.0.1
+                imagePullPolicy: Always
+                livenessProbe:
+                  httpGet:
+                    path: /healthz
+                    port: 8081
+                  initialDelaySeconds: 15
+                  periodSeconds: 20
+                name: manager
+                readinessProbe:
+                  httpGet:
+                    path: /readyz
+                    port: 8081
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 128Mi
+                  requests:
+                    cpu: 10m
+                    memory: 64Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+              securityContext:
+                runAsNonRoot: true
+              serviceAccountName: upgrade-operator-controller-manager
+              terminationGracePeriodSeconds: 10
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - coordination.k8s.io
+          resources:
+          - leases
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - ""
+          resources:
+          - events
+          verbs:
+          - create
+          - patch
+        serviceAccountName: upgrade-operator-controller-manager
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: false
+    type: AllNamespaces
+  keywords:
+  - MFE
+  links:
+  - name: Documentation
+    url: https://dev.entando.org/v7.0/docs/
+  - name: Support
+    url: https://www.entando.com/
+  maintainers:
+  - email: dev@entando.com
+    name: support
+  maturity: alpha
+  provider:
+    name: Entando, Inc
+  version: 0.0.1

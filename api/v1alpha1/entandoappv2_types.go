@@ -39,6 +39,12 @@ type EntandoAppV2Spec struct {
 	DeApp DeApp `json:"deApp,omitempty"`
 	// Section used to configure Keycloak
 	Keycloak Keycloak `json:"keycloak,omitempty"`
+	// Section used to configure k8s-service
+	K8sService K8sService `json:"k8sService,omitempty"`
+	// Section used to configure legacy operator plugin-controller
+	K8sPluginController K8sPluginController `json:"k8sPluginController,omitempty"`
+	// Section used to configure legacy operator app-plugin-link-controller
+	K8sAppPluginLinkController K8sAppPluginLinkController `json:"k8sAppPluginLinkController,omitempty"`
 }
 type EntandoComponent struct {
 	// used to override the component image
@@ -68,6 +74,18 @@ type Keycloak struct {
 	ExternalService  bool `json:"externalService,omitempty"`
 }
 
+type K8sService struct {
+	EntandoComponent `json:",omitempty"`
+}
+
+type K8sPluginController struct {
+	EntandoComponent `json:",omitempty"`
+}
+
+type K8sAppPluginLinkController struct {
+	EntandoComponent `json:",omitempty"`
+}
+
 // EntandoAppV2Status defines the observed state of EntandoAppV2
 type EntandoAppV2Status struct {
 	ObservedGeneration int64              `json:"observedGeneration,omitempty"`
@@ -79,7 +97,9 @@ type EntandoAppV2Status struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// EntandoAppV2 is the Schema for the entandoappv2s API
+// An EntandoAppV2 deploys the components required to upgrade an Entando App. The server side
+// components that are deployed include the Entando App Engine, the Entando Component Manager,
+// the Entando App Builder, and the user facing application.
 type EntandoAppV2 struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

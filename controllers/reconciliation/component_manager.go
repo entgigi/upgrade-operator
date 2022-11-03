@@ -2,6 +2,7 @@ package reconciliation
 
 import (
 	"context"
+
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/utils"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -20,12 +21,7 @@ func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image 
 
 	deployment.Spec.Template.Spec.Containers[0].Image = image
 
-	entandoAppV2 := v1alpha1.EntandoAppV2{}
-	if err := r.Client.Get(ctx, req.NamespacedName, &entandoAppV2); err != nil {
-		return err
-	}
-
-	envVars := utils.MergeEnvVars(entandoAppV2, deployment)
+	envVars := utils.MergeEnvVars(*cr, deployment)
 	deployment.Spec.Template.Spec.Containers[0].Env = envVars
 
 	if err := r.Update(ctx, deployment); err != nil {

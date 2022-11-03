@@ -46,7 +46,7 @@ type EntandoAppV2Reconciler struct {
 //+kubebuilder:rbac:groups=app.entando.org,resources=entandoappv2s/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=app.entando.org,resources=entandoappv2s/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=deployments,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups="",resources=csvs,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="operators.coreos.com",resources=clusterserviceversions,verbs=get;list;watch;create;update;patch;delete
 
 func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithName(controllerLogName)
