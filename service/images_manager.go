@@ -209,14 +209,16 @@ func (r *ImageManager) checkTagOrDigest(entandoAppV2 v1alpha1.EntandoAppV2) erro
 			entandoAppV2.Spec.K8sAppPluginLinkController.ImageOverride,
 		}
 		for _, image := range imagesToCheck {
-			imageInfo, err := NewImageInfo(image)
-			if err != nil {
-				r.Log.Error(err, "Error parsing image url", "imageUrl", image)
-				return err
-			}
-			if imageInfo.IsTag() {
-				r.Log.Error(err, "Error image url contains tag in an OLM installation", "imageUrl", image)
-				return fmt.Errorf("Error image url:'%s' contains tag in an OLM installation", image)
+			if len(image) > 0 {
+				imageInfo, err := NewImageInfo(image)
+				if err != nil {
+					r.Log.Error(err, "Error parsing image url", "imageUrl", image)
+					return err
+				}
+				if imageInfo.IsTag() {
+					r.Log.Error(err, "Error image url contains tag in an OLM installation", "imageUrl", image)
+					return fmt.Errorf("Error image url:'%s' contains tag in an OLM installation", image)
+				}
 			}
 		}
 
