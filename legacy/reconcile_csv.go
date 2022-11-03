@@ -63,20 +63,20 @@ func (r *LegacyReconcileManager) ReconcileClusterServiceVersion(ctx context.Cont
 
 func (r *LegacyReconcileManager) setRelatedImages(csv *csv.ClusterServiceVersion, appImages service.EntandoAppImages) {
 	for i, entry := range csv.Spec.RelatedImages {
-		switch {
-		case entry.Name == "app-builder-6-4":
+		switch entry.Name {
+		case "app-builder-6-4":
 			csv.Spec.RelatedImages[i].Image = appImages.FetchAppBuilder()
-		case entry.Name == "entando-component-manager-6-4":
+		case "entando-component-manager-6-4":
 			csv.Spec.RelatedImages[i].Image = appImages.FetchComponentManager()
-		case entry.Name == "entando-de-app-eap-6-4":
+		case "entando-de-app-eap-6-4":
 			csv.Spec.RelatedImages[i].Image = appImages.FetchDeApp()
-		case entry.Name == "entando-redhat-sso":
+		case "entando-redhat-sso":
 			csv.Spec.RelatedImages[i].Image = appImages.FetchKeycloak()
-		case entry.Name == "entando-k8s-service":
+		case "entando-k8s-service":
 			csv.Spec.RelatedImages[i].Image = appImages.FetchK8sService()
-		case entry.Name == "entando-k8s-plugin-controller":
+		case "entando-k8s-plugin-controller":
 			csv.Spec.RelatedImages[i].Image = appImages.FetchK8sPluginController()
-		case entry.Name == "entando-k8s-app-plugin-link-controller":
+		case "entando-k8s-app-plugin-link-controller":
 			csv.Spec.RelatedImages[i].Image = appImages.FetchK8sAppPluginLinkController()
 		}
 	}
@@ -87,8 +87,8 @@ func (r *LegacyReconcileManager) setCoordinatorEnvs(csv *csv.ClusterServiceVersi
 		if deploy.Name == "entando-operator" {
 			r.Log.Info("ClusterServiceVersion deployment entando-operator found")
 			for i, env := range deploy.Spec.Template.Spec.Containers[0].Env {
-				switch {
-				case env.Name == "RELATED_IMAGE_APP_BUILDER_6_4":
+				switch env.Name {
+				case "RELATED_IMAGE_APP_BUILDER_6_4":
 					/*
 						r.Log.Info("AppBuilder image replace",
 							"oldVersion",
@@ -97,17 +97,17 @@ func (r *LegacyReconcileManager) setCoordinatorEnvs(csv *csv.ClusterServiceVersi
 							appImages.FetchAppBuilder())
 					*/
 					setCsvEnvValue(csv, appImages.FetchAppBuilder(), j, i)
-				case env.Name == "RELATED_IMAGE_ENTANDO_COMPONENT_MANAGER_6_4":
+				case "RELATED_IMAGE_ENTANDO_COMPONENT_MANAGER_6_4":
 					setCsvEnvValue(csv, appImages.FetchComponentManager(), j, i)
-				case env.Name == "RELATED_IMAGE_ENTANDO_DE_APP_EAP_6_4":
+				case "RELATED_IMAGE_ENTANDO_DE_APP_EAP_6_4":
 					setCsvEnvValue(csv, appImages.FetchDeApp(), j, i)
-				case env.Name == "RELATED_IMAGE_ENTANDO_REDHAT_SSO":
+				case "RELATED_IMAGE_ENTANDO_REDHAT_SSO":
 					setCsvEnvValue(csv, appImages.FetchKeycloak(), j, i)
-				case env.Name == "RELATED_IMAGE_ENTANDO_K8S_SERVICE":
+				case "RELATED_IMAGE_ENTANDO_K8S_SERVICE":
 					setCsvEnvValue(csv, appImages.FetchK8sService(), j, i)
-				case env.Name == "RELATED_IMAGE_ENTANDO_K8S_PLUGIN_CONTROLLER":
+				case "RELATED_IMAGE_ENTANDO_K8S_PLUGIN_CONTROLLER":
 					setCsvEnvValue(csv, appImages.FetchK8sPluginController(), j, i)
-				case env.Name == "RELATED_IMAGE_ENTANDO_K8S_APP_PLUGIN_LINK_CONTROLLER":
+				case "RELATED_IMAGE_ENTANDO_K8S_APP_PLUGIN_LINK_CONTROLLER":
 					setCsvEnvValue(csv, appImages.FetchK8sAppPluginLinkController(), j, i)
 				}
 			}
