@@ -71,6 +71,9 @@ func (r *LegacyReconcileManager) ReconcileImageInfo(ctx context.Context, req ctr
 }
 
 func (r *LegacyReconcileManager) buildNewValue(value string, imageUrl string) string {
+	
+	// TODO manage better error if the image is relative to a controller
+	
 	image, err := service.NewImageInfo(imageUrl)
 	if err != nil {
 		r.Log.Error(err, "Error parse fully qualified image url", "imageUrl", imageUrl)
