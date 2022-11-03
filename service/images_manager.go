@@ -198,30 +198,32 @@ func (r *ImageManager) FetchAndComposeImagesMap(entandoAppV2 v1alpha1.EntandoApp
 }
 
 func (r *ImageManager) checkTagOrDigest(entandoAppV2 v1alpha1.EntandoAppV2) error {
-	if utils.IsOlmInstallation() {
-		imagesToCheck := []string{
-			entandoAppV2.Spec.AppBuilder.ImageOverride,
-			entandoAppV2.Spec.ComponentManager.ImageOverride,
-			entandoAppV2.Spec.DeApp.ImageOverride,
-			entandoAppV2.Spec.Keycloak.ImageOverride,
-			entandoAppV2.Spec.K8sService.ImageOverride,
-			entandoAppV2.Spec.K8sPluginController.ImageOverride,
-			entandoAppV2.Spec.K8sAppPluginLinkController.ImageOverride,
-		}
-		for _, image := range imagesToCheck {
-			if len(image) > 0 {
-				imageInfo, err := NewImageInfo(image)
-				if err != nil {
-					r.Log.Error(err, "Error parsing image url", "imageUrl", image)
-					return err
-				}
-				if imageInfo.IsTag() {
-					r.Log.Error(err, "Error image url contains tag in an OLM installation", "imageUrl", image)
-					return fmt.Errorf("Error image url:'%s' contains tag in an OLM installation", image)
-				}
+	imagesToCheck := []string{
+		entandoAppV2.Spec.AppBuilder.ImageOverride,
+		entandoAppV2.Spec.ComponentManager.ImageOverride,
+		entandoAppV2.Spec.DeApp.ImageOverride,
+		entandoAppV2.Spec.Keycloak.ImageOverride,
+		entandoAppV2.Spec.K8sService.ImageOverride,
+		entandoAppV2.Spec.K8sPluginController.ImageOverride,
+		entandoAppV2.Spec.K8sAppPluginLinkController.ImageOverride,
+	}
+	for _, image := range imagesToCheck {
+		if len(image) > 0 {
+			imageInfo, err := NewImageInfo(image)
+			if err != nil {
+				r.Log.Error(err, "Error parsing image url", "imageUrl", image)
+				return err
+			}
+			if utils.IsOlmInstallation() && imageInfo.IsTag() {
+				r.Log.Error(err, "Error image url contains tag in an OLM installation", "imageUrl", image)
+				return fmt.Errorf("Error image url:'%s' contains tag in an OLM installation", image)
+			}
+			if !utils.IsOlmInstallation() && imageInfo.IsDigest() {
+				r.Log.Error(err, "Error image url contains digest in an non-OLM installation", "imageUrl", image)
+				return fmt.Errorf("Error image url:'%s' contains tag in an non-OLM installation", image)
 			}
 		}
-
 	}
+
 	return nil
 }
