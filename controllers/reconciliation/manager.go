@@ -72,16 +72,16 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 
 	// =========================== start legacy section ===========================
 	// progress step not added because is not a business step but jsut technical
+	legacyReconcile := legacy.NewLegacyReconcileManager(r.Client, r.Log)
 	if utils.IsOlmInstallation() {
 		r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "Csv")
-		legacyReconcile := legacy.NewLegacyReconcileManager(r.Client, r.Log)
+
 		if err = legacyReconcile.ReconcileClusterServiceVersion(ctx, req, images); err != nil {
 			r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "CsvReconciliationFailed")
 			return err
 		}
 	} else {
 		r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "ImageInfo")
-		legacyReconcile := legacy.NewLegacyReconcileManager(r.Client, r.Log)
 		if err = legacyReconcile.ReconcileImageInfo(ctx, req, images); err != nil {
 			r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "ImageInfoReconciliationFailed")
 			return err
