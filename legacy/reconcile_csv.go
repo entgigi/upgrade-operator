@@ -30,7 +30,7 @@ func (r *LegacyReconcileManager) ReconcileClusterServiceVersion(ctx context.Cont
 
 	if err := r.Client.List(ctx, csvList); err != nil {
 		r.Log.Error(err, "Error List ClusterServiceVersion")
-		return nil
+		return err
 	}
 
 	var csv *csv.ClusterServiceVersion

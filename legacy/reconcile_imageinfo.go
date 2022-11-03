@@ -9,7 +9,6 @@ import (
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/entgigi/upgrade-operator.git/service"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -31,31 +30,38 @@ func (r *LegacyReconcileManager) ReconcileImageInfo(ctx context.Context, req ctr
 		Namespace: req.NamespacedName.Namespace,
 	}
 	if err := r.Client.Get(ctx, imageInfo, configMap); err != nil {
-		if errors.IsNotFound(err) {
-			r.Log.Info("ImageInfo configMap not found")
-			return nil
-		}
 		r.Log.Error(err, "Error get ImageInfo configMap")
 		return err
 	}
 
 	for key, value := range configMap.Data {
-		switch {
-		case key == "app-builder-6-4":
+		var err error
+		switch key {
+		case "app-builder-6-4":
 			r.Log.Info(fmt.Sprintf("app-builder-6-4 %+v\n", appImages.FetchAppBuilder()))
-			configMap.Data[key] = r.buildNewValue(value, appImages.FetchAppBuilder())
-		case key == "entando-component-manager-6-4":
-			configMap.Data[key] = r.buildNewValue(value, appImages.FetchComponentManager())
-		case key == "entando-de-app-wildfly-6-4":
-			configMap.Data[key] = r.buildNewValue(value, appImages.FetchDeApp())
-		case key == "entando-k8s-keycloak-controller":
-			configMap.Data[key] = r.buildNewValue(value, appImages.FetchKeycloak())
-		case key == "entando-k8s-service":
-			configMap.Data[key] = r.buildNewValue(value, appImages.FetchK8sService())
-		case key == "entando-k8s-plugin-controller":
-			configMap.Data[key] = r.buildNewValue(value, appImages.FetchK8sPluginController())
-		case key == "entando-k8s-app-plugin-link-controller":
-			configMap.Data[key] = r.buildNewValue(value, appImages.FetchK8sAppPluginLinkController())
+			err = r.buildAndSetNewValue(configMap, key, value, appImages.FetchAppBuilder())
+
+		case "entando-component-manager-6-4":
+			err = r.buildAndSetNewValue(configMap, key, value, appImages.FetchComponentManager())
+
+		case "entando-de-app-wildfly-6-4":
+			err = r.buildAndSetNewValue(configMap, key, value, appImages.FetchDeApp())
+
+		case "entando-k8s-keycloak-controller":
+			err = r.buildAndSetNewValue(configMap, key, value, appImages.FetchKeycloak())
+
+		case "entando-k8s-service":
+			err = r.buildAndSetNewValue(configMap, key, value, appImages.FetchK8sService())
+
+		case "entando-k8s-plugin-controller":
+			err = r.buildAndSetNewValue(configMap, key, value, appImages.FetchK8sPluginController())
+
+		case "entando-k8s-app-plugin-link-controller":
+			err = r.buildAndSetNewValue(configMap, key, value, appImages.FetchK8sAppPluginLinkController())
+
+		}
+		if err != nil {
+			return err
 		}
 	}
 
@@ -70,20 +76,21 @@ func (r *LegacyReconcileManager) ReconcileImageInfo(ctx context.Context, req ctr
 	return nil
 }
 
-func (r *LegacyReconcileManager) buildNewValue(value string, imageUrl string) string {
-	
-	// TODO manage better error if the image is relative to a controller
-	
+func (r *LegacyReconcileManager) buildAndSetNewValue(configMap *corev1.ConfigMap,
+	key string,
+	value string,
+	imageUrl string) error {
+
 	image, err := service.NewImageInfo(imageUrl)
 	if err != nil {
 		r.Log.Error(err, "Error parse fully qualified image url", "imageUrl", imageUrl)
-		return value
+		return err
 	}
 
 	newValue, err := convertJsonStringToStruct(value)
 	if err != nil {
 		r.Log.Error(err, "Error convert json string to data structure ImageInfoEntry", "value", value)
-		return value
+		return err
 	}
 
 	newValue = composeNewValue(newValue, image)
@@ -91,10 +98,12 @@ func (r *LegacyReconcileManager) buildNewValue(value string, imageUrl string) st
 	newStringvalue, err := convertStructToJsonString(newValue)
 	if err != nil {
 		r.Log.Error(err, "Error convert data structure ImageInfoEntry to json string")
-		return value
+		return err
 	}
 
-	return newStringvalue
+	configMap.Data[key] = newStringvalue
+
+	return nil
 }
 
 func convertJsonStringToStruct(s string) (ImageInfoEntry, error) {
