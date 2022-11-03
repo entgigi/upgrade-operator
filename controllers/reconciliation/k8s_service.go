@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
-	"github.com/entgigi/upgrade-operator.git/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -26,10 +25,10 @@ func (r *ReconcileManager) reconcileK8sService(ctx context.Context, req ctrl.Req
 		return err
 	}
 
-	deployment.Spec.Template.Spec.Containers[0].Image = image
-
-	envVars := utils.MergeEnvVars(entandoAppV2, deployment)
-	deployment.Spec.Template.Spec.Containers[0].Env = envVars
+	deployment = r.updateCommonDeploymentData(deployment,
+		image,
+		entandoAppV2.Spec.CommonEnvironmentVariables,
+		entandoAppV2.Spec.ComponentManager.EnvironmentVariables)
 
 	if err := r.Update(ctx, deployment); err != nil {
 		return err
