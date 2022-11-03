@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/entgigi/upgrade-operator.git/common"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -26,23 +27,30 @@ func GetWatchNamespace() (string, error) {
 	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
 	// which specifies the Namespace to watch.
 	// An empty value means the operator is running with cluster scope.
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
 
-	ns, found := os.LookupEnv(watchNamespaceEnvVar)
+	ns, found := os.LookupEnv(common.WatchNamespaceEnvVar)
 	if !found {
-		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+		return "", fmt.Errorf("%s must be set", common.WatchNamespaceEnvVar)
 	}
 	return ns, nil
 }
 
 func IsOlmInstallation() bool {
-	var operatorTypeEnvVar = "ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE"
-
-	operatorType, found := os.LookupEnv(operatorTypeEnvVar)
-	if !found || operatorType == "olm" {
+	operatorType := GetOperatorDeploymentType()
+	if operatorType == common.OperatorTypeOlm {
 		return true
 	}
 	return false
+}
+
+func GetOperatorDeploymentType() string {
+	operatorType, found := os.LookupEnv(common.OperatorTypeEnvVar)
+	if found {
+		return operatorType
+	} else {
+		// default
+		return common.OperatorTypeOlm
+	}
 }
 
 // TODO make more generic with interface parameter

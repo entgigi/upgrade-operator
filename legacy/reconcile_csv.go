@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/entgigi/upgrade-operator.git/common"
+	"github.com/entgigi/upgrade-operator.git/service"
 	"github.com/go-logr/logr"
 	csv "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -19,7 +20,10 @@ func NewLegacyReconcileManager(client client.Client, log logr.Logger) *LegacyRec
 	return &LegacyReconcileManager{BaseK8sStructure: common.BaseK8sStructure{Client: client, Log: log}}
 }
 
-func (r *LegacyReconcileManager) ReconcileClusterServiceVersion(ctx context.Context, req ctrl.Request, appImages common.EntandoAppImages) error {
+func (r *LegacyReconcileManager) ReconcileClusterServiceVersion(ctx context.Context,
+	req ctrl.Request,
+	appImages service.EntandoAppImages) error {
+
 	r.Log.Info("Starting ClusterServiceVersion reconciliation flow")
 
 	csvList := &csv.ClusterServiceVersionList{}
@@ -57,7 +61,7 @@ func (r *LegacyReconcileManager) ReconcileClusterServiceVersion(ctx context.Cont
 	return nil
 }
 
-func (r *LegacyReconcileManager) setRelatedImages(csv *csv.ClusterServiceVersion, appImages common.EntandoAppImages) {
+func (r *LegacyReconcileManager) setRelatedImages(csv *csv.ClusterServiceVersion, appImages service.EntandoAppImages) {
 	for i, entry := range csv.Spec.RelatedImages {
 		switch {
 		case entry.Name == "app-builder-6-4":
@@ -78,7 +82,7 @@ func (r *LegacyReconcileManager) setRelatedImages(csv *csv.ClusterServiceVersion
 	}
 }
 
-func (r *LegacyReconcileManager) setCoordinatorEnvs(csv *csv.ClusterServiceVersion, appImages common.EntandoAppImages) {
+func (r *LegacyReconcileManager) setCoordinatorEnvs(csv *csv.ClusterServiceVersion, appImages service.EntandoAppImages) {
 	for j, deploy := range (*csv).Spec.InstallStrategy.StrategySpec.DeploymentSpecs {
 		if deploy.Name == "entando-operator" {
 			r.Log.Info("ClusterServiceVersion deployment entando-operator found")
@@ -118,7 +122,7 @@ func setCsvEnvValue(csv *csv.ClusterServiceVersion, image string, indexDeploymen
 		Spec.Template.Spec.Containers[0].Env[indexEnv].Value = image
 }
 
-func (r *LegacyReconcileManager) setK8sServiceDeployment(csv *csv.ClusterServiceVersion, appImages common.EntandoAppImages) {
+func (r *LegacyReconcileManager) setK8sServiceDeployment(csv *csv.ClusterServiceVersion, appImages service.EntandoAppImages) {
 	for j, deploy := range (*csv).Spec.InstallStrategy.StrategySpec.DeploymentSpecs {
 		if deploy.Name == "entando-k8s-service" {
 			r.Log.Info("ClusterServiceVersion deployment entando-k8s-service found")

@@ -82,6 +82,7 @@ func main() {
 
 	}
 	setupLog.Info(fmt.Sprintf("Watching namespace '%s'", namespace))
+	setupLog.Info(fmt.Sprintf("Operator deployment type '%s'", utils.GetOperatorDeploymentType()))
 
 	options := ctrl.Options{
 		Scheme:                 scheme,

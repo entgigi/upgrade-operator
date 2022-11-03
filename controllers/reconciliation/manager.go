@@ -6,6 +6,7 @@ import (
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/entgigi/upgrade-operator.git/legacy"
+	"github.com/entgigi/upgrade-operator.git/service"
 	"github.com/entgigi/upgrade-operator.git/utils"
 	"github.com/go-logr/logr"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -45,7 +46,7 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 		return err
 	}
 
-	imageManager := common.NewImageManager(r.Log)
+	imageManager := service.NewImageManager(r.Log)
 	images := imageManager.FetchAndComposeImagesMap(*crReadOnly)
 	//r.Log.Info(fmt.Sprintf("%+v\n", images))
 
@@ -97,7 +98,7 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 			r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "K8sServiceReconciliationFailed")
 			return err
 		}
-		// K8sCoordinator restart ?
+		// legacy K8sCoordinator restart ? no needs
 
 	}
 

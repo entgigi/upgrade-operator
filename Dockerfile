@@ -15,6 +15,7 @@ COPY api/ api/
 COPY common/ common/
 COPY controllers/ controllers/
 COPY legacy/ legacy/
+COPY service/ service/
 COPY utils/ utils/
 
 # Build

@@ -13,4 +13,9 @@ const (
 	K8sService                 string = "K8sService"
 	K8sPluginController        string = "K8sPluginController"
 	K8sAppPluginLinkController string = "K8sAppPluginLinkController"
+
+	WatchNamespaceEnvVar  string = "WATCH_NAMESPACE"
+	OperatorTypeEnvVar    string = "ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE"
+	OperatorTypeOlm       string = "olm"
+	OperatorTypeCommunity string = "community"
 )
