@@ -17,7 +17,7 @@ func NewImageManager(log logr.Logger) *ImageManager {
 	return &ImageManager{Log: log}
 }
 
-func (e EntandoAppImages) manageImageKey(baseKey string) string {
+func (e EntandoAppImages) chooseKeyWithTagOrDigest(baseKey string) string {
 	key := baseKey
 	if utils.IsOlmInstallation() {
 		key = key + common.TagKey
@@ -28,20 +28,20 @@ func (e EntandoAppImages) manageImageKey(baseKey string) string {
 }
 
 func (e EntandoAppImages) FetchAppBuilder() string {
-	return e.manageImageKey(common.AppBuilderKey)
+	return e.chooseKeyWithTagOrDigest(common.AppBuilderKey)
 }
 
 func (e EntandoAppImages) FetchComponentManager() string {
-	return e.manageImageKey(common.ComponentManagerKey)
+	return e.chooseKeyWithTagOrDigest(common.ComponentManagerKey)
 }
 
 func (e EntandoAppImages) FetchDeApp() string {
 	var imageUrl string
 	if utils.IsImageSetTypeCommunity(e.cr) {
-		key := e.manageImageKey(common.DeAppKeyTag)
+		key := e.chooseKeyWithTagOrDigest(common.DeAppKey)
 		imageUrl, _ = e.images[key].(string)
 	} else {
-		key := e.manageImageKey(common.DeAppEapKey)
+		key := e.chooseKeyWithTagOrDigest(common.DeAppEapKey)
 		imageUrl, _ = e.images[key].(string)
 	}
 	return imageUrl
@@ -50,25 +50,25 @@ func (e EntandoAppImages) FetchDeApp() string {
 func (e EntandoAppImages) FetchKeycloak() string {
 	var k string
 	if utils.IsImageSetTypeCommunity(e.cr) {
-		key := e.manageImageKey(common.KeycloakKeyTag)
+		key := e.chooseKeyWithTagOrDigest(common.KeycloakKey)
 		k, _ = e.images[key].(string)
 	} else {
-		key := e.manageImageKey(common.KeycloakSsoKey)
+		key := e.chooseKeyWithTagOrDigest(common.KeycloakSsoKey)
 		k, _ = e.images[key].(string)
 	}
 	return k
 }
 
 func (e EntandoAppImages) FetchK8sService() string {
-	return e.manageImageKey(common.K8sServiceKey)
+	return e.chooseKeyWithTagOrDigest(common.K8sServiceKey)
 }
 
 func (e EntandoAppImages) FetchK8sPluginController() string {
-	return e.manageImageKey(common.K8sPluginControllerKey)
+	return e.chooseKeyWithTagOrDigest(common.K8sPluginControllerKey)
 }
 
 func (e EntandoAppImages) FetchK8sAppPluginLinkController() string {
-	return e.manageImageKey(common.K8sAppPluginLinkControllerKey)
+	return e.chooseKeyWithTagOrDigest(common.K8sAppPluginLinkControllerKey)
 }
 
 type EntandoAppImages struct {
@@ -81,7 +81,6 @@ type entandoAppImages map[string]interface{}
 type entandoAppList map[string]entandoAppImages
 
 // TODO read from yaml ???
-// FIXME! use struct not map[string] to obtain immutability with constants
 var apps = entandoAppList{
 	"7.0.2": entandoAppImages{
 		common.AppBuilderKeyTag:                 "registry.hub.docker.com/entando/app-builder:7.0.2",
@@ -151,6 +150,7 @@ func (i *ImageManager) FetchImagesByAppVersion(cr *v1alpha1.EntandoAppV2) Entand
 	log.Info("Fetch entando app images", "version", version)
 
 	if images, ok := apps[version]; ok {
+		// WARNING! we do map deep copy to grant immutabiolity to original map
 		return EntandoAppImages{utils.CopyMap(images), cr}
 	} else {
 		log.Info("The catalog does not contain the requested App Version ", "version", cr.Spec.Version)
