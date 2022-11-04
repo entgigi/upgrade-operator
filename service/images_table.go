@@ -15,7 +15,7 @@ type EntandoAppImages struct {
 // entandoAppImages internal structure used to archive imageset
 type entandoAppImages map[string]interface{}
 
-// entandoAppList internal structure used to archive imageset slectable by application version
+// entandoAppList internal structure used to archive imageset selectable by application version
 type entandoAppList map[string]entandoAppImages
 
 // TODO read from yaml ???
