@@ -33,7 +33,12 @@ func MergeEnvVars(deployment *appsv1.Deployment,
 
 // BuildDeploymentLabelSelectorWithAppName build and return the label to select an entando deployment
 func BuildDeploymentLabelSelectorWithAppName(appName string, componentName string) map[string]string {
-	return BuildDeploymentLabelSelector(appName + "-" + componentName)
+	labelValue := appName
+	if componentName != "" {
+		labelValue += "-" + componentName
+	}
+
+	return BuildDeploymentLabelSelector(labelValue)
 }
 
 // BuildDeploymentLabelSelector build and return the label to select an entando deployment
