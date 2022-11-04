@@ -28,7 +28,7 @@ func (r *ReconcileManager) reconcileK8sService(ctx context.Context, req ctrl.Req
 	deployment = r.updateCommonDeploymentData(deployment,
 		image,
 		entandoAppV2.Spec.CommonEnvironmentVariables,
-		entandoAppV2.Spec.ComponentManager.EnvironmentVariables)
+		entandoAppV2.Spec.K8sService.EnvironmentVariables)
 
 	if err := r.Update(ctx, deployment); err != nil {
 		return err
