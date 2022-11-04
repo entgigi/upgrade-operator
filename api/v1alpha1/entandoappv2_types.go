@@ -29,6 +29,8 @@ type EntandoAppV2Spec struct {
 	Version string `json:"version"`
 	// EntandoAppName is the name of the EntandoApp CR to update
 	EntandoAppName string `json:"entandoAppName,omitempty"`
+	// ImageSetType is to select the list of image to use, the admitted values are: RedhatCertified or Community
+	ImageSetType string `json:"imageSetType,omitempty"`
 	// used to add Environment Variables to all EntandoApp components
 	CommonEnvironmentVariables []corev1.EnvVar `json:"commonEnvironmentVariables,omitempty"`
 	// Section used to configure AppBuilder
