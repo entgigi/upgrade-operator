@@ -2,6 +2,7 @@ package reconciliation
 
 import (
 	"context"
+
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
@@ -17,6 +18,7 @@ func (r *ReconcileManager) reconcileDeApp(ctx context.Context, image string, req
 
 	deployment = r.updateCommonDeploymentData(deployment,
 		image,
+		r.envVarByVersion(cr, deAppManagerEnv),
 		cr.Spec.CommonEnvironmentVariables,
 		cr.Spec.DeApp.EnvironmentVariables)
 
@@ -30,4 +32,8 @@ func (r *ReconcileManager) reconcileDeApp(ctx context.Context, image string, req
 	r.Log.Info("Finished DeApp reconciliation flow")
 
 	return nil
+}
+
+var deAppManagerEnv = listApplicationEnvVar{
+	"7.1.1": applicationEnvVar{},
 }
