@@ -23,7 +23,7 @@ func (i *ImageManager) FetchImagesByAppVersion(cr *v1alpha1.EntandoAppV2) Entand
 	log.Info("Fetch entando app images", "version", version)
 
 	if images, ok := apps[version]; ok {
-		// WARNING! we do map deep copy to grant immutabiolity to original map
+		// WARNING! we do map deep copy to grant immutability to original map
 		return EntandoAppImages{utils.CopyMap(images), cr}
 	} else {
 		log.Info("The catalog does not contain the requested App Version ", "version", cr.Spec.Version)
