@@ -18,7 +18,7 @@ package controllers
 
 import (
 	"context"
-	"github.com/entgigi/upgrade-operator.git/api/entando.org/v1"
+	v1 "github.com/entgigi/upgrade-operator.git/api/entando.org/v1"
 	v1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/controllers/reconciliation"
 	"github.com/go-logr/logr"
@@ -54,6 +54,8 @@ type EntandoAppV2Reconciler struct {
 func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithName(controllerLogName)
 	log.Info("Start reconciling EntandoAppV2 custom resources")
+
+	r.updateReady(ctx, req.Namespace, log)
 
 	entandoAppV2 := v1alpha1.EntandoAppV2{}
 	err := r.Client.Get(ctx, req.NamespacedName, &entandoAppV2)
@@ -139,5 +141,21 @@ func (r *EntandoAppV2Reconciler) removeFinalizer(ctx context.Context, entandoApp
 			return err
 		}
 	}
+	return nil
+}
+
+func (r *EntandoAppV2Reconciler) updateReady(ctx context.Context, ns string, log logr.Logger) error {
+	// TODO: for each deploy
+	var readyDeploy bool = false
+	deployment := &appsv1.Deployment{}
+	r.Client.Get(ctx, client.ObjectKey{Name: "quickstart-deployment", Namespace: ns}, deployment)
+	readyDeploy = deployment.Status.ReadyReplicas > 0 && deployment.Status.ReadyReplicas == deployment.Status.Replicas
+
+	// TODO: remove
+	log.Info("Get deployment quickstart: \n", "deploy", &deployment)
+	log.Info("Get Infos: \n", "readyReplicas:", deployment.Status.ReadyReplicas, "Replicas", deployment.Status.Replicas, "isReady", readyDeploy)
+
+	// TODO: update condition ready
+
 	return nil
 }
