@@ -116,6 +116,7 @@ func TestImagemapFromVersionAndOverride(t *testing.T) {
 }
 
 func TestImagemapFromOverrideAndNonExistentVersion(t *testing.T) {
+	// do we need it ?
 }
 
 func TestImagemapOlmWithTag(t *testing.T) {
