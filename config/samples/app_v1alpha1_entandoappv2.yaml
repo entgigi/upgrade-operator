@@ -22,12 +22,13 @@ spec:
       - name: TO_OVERRIDE_1
         value: SUCCESS_1_CM
     # 7.1.0
-    # imageOverride: "entando/entando-component-manager@sha256:7dfb73e37b14396450c695bcaa2b3a3a0b06b1cdfcbdad72d1d50e3150d387e4"
+    # imageOverride: "entando/entando-component-manager:7.1.0"
     # 7.1.1
-    imageOverride: "entando/entando-component-manager@sha256:13d9ba8a9a3cb52f4f999ece27f3ba8470fabd77a8c31290b5fdcc615e1dff11"
+    imageOverride: "entando/entando-component-manager:7.1.1"
   keycloak:
     environmentVariables:
       - name: CUSTOM_ENV_KC
         value: test_ks
       - name: TO_OVERRIDE_1
         value: SUCCESS_1_KC
+    externalService: false

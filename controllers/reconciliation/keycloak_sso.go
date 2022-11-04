@@ -3,6 +3,7 @@ package reconciliation
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/utils"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -23,23 +24,35 @@ func (r *ReconcileManager) reconcileKeycloak(ctx context.Context, image string, 
 		return errors.New("more than 1 keycloak deployment found matching the received labels")
 	}
 
-	if len(deployments.Items) <= 0 {
-		r.Log.Info("Keycloak deployment not found. Assuming external Keycloak deployment, skipping reconciliation")
-		return nil
+	// if external and deployment present internally => delete it
+	if cr.Spec.Keycloak.ExternalService && len(deployments.Items) > 0 {
+		r.Log.Info("external Keycloak requirement but deployment found. Dismissing...")
+		return r.Delete(ctx, &deployments.Items[0])
 	}
 
-	deployment := &deployments.Items[0]
+	// if internal
+	if !cr.Spec.Keycloak.ExternalService {
 
-	deployment = r.updateCommonDeploymentData(deployment,
-		image,
-		cr.Spec.CommonEnvironmentVariables,
-		cr.Spec.Keycloak.EnvironmentVariables)
+		// and no deployment
+		if len(deployments.Items) <= 0 || len(deployments.Items) > 1 {
+			return fmt.Errorf("internal Keycloak requirement but %d found", len(deployments.Items))
+			// TODO manage the case with 0 deployment by deploy a new keycloak in the future?
+		}
 
-	if err := r.Update(ctx, deployment); err != nil {
-		return err
+		// otherwise reconcile
+		deployment := &deployments.Items[0]
+
+		deployment = r.updateCommonDeploymentData(deployment,
+			image,
+			cr.Spec.CommonEnvironmentVariables,
+			cr.Spec.Keycloak.EnvironmentVariables)
+
+		if err := r.Update(ctx, deployment); err != nil {
+			return err
+		}
+
+		r.Log.Info("Finished Keycloak reconciliation flow")
 	}
-
-	r.Log.Info("Finished Keycloak reconciliation flow")
 
 	return nil
 }
