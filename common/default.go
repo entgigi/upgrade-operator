@@ -1,9 +1,11 @@
 package common
 
 const (
-	AppName                          string = "EntandoAppV2"
-	Version                          string = "0.0.1"
-	ImageInfoConfigMap               string = "entando-docker-image-info"
+	AppName            string = "EntandoAppV2"
+	Version            string = "0.0.1"
+	ImageInfoConfigMap string = "entando-docker-image-info"
+
+	// images internal table keys
 	TagKey                           string = "Tag"
 	AppBuilderKey                    string = "AppBuilder"
 	AppBuilderKeyTag                 string = "AppBuilder" + TagKey
@@ -24,8 +26,11 @@ const (
 	K8sAppPluginLinkControllerKey    string = "K8sAppPluginLinkController"
 	K8sAppPluginLinkControllerkeyTag string = "K8sAppPluginLinkController" + TagKey
 
-	WatchNamespaceEnvVar  string = "WATCH_NAMESPACE"
-	OperatorTypeEnvVar    string = "ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE"
-	OperatorTypeOlm       string = "olm"
-	OperatorTypeCommunity string = "community"
+	// Operator configuration constants
+	WatchNamespaceEnvVar        string = "WATCH_NAMESPACE"
+	OperatorTypeEnvVar          string = "ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE"
+	OperatorTypeOlm             string = "OLM"
+	OperatorTypeCommunity       string = "Plain"
+	ImageSetTypeRedHatCertified string = "Community"
+	ImageSetTypeCommunity       string = "RedhatCertified"
 )

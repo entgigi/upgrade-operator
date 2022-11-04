@@ -2,6 +2,7 @@ package reconciliation
 
 import (
 	"context"
+
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/entgigi/upgrade-operator.git/legacy"
@@ -50,7 +51,7 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 	imageManager := service.NewImageManager(r.Log)
 	var images service.EntandoAppImages
 
-	if images, err = imageManager.FetchAndComposeImagesMap(*crReadOnly); err != nil {
+	if images, err = imageManager.FetchAndComposeImagesMap(crReadOnly); err != nil {
 		return err
 	}
 	//r.Log.Info(fmt.Sprintf("%+v\n", images))

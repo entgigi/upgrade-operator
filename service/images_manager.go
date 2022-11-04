@@ -17,14 +17,12 @@ func NewImageManager(log logr.Logger) *ImageManager {
 	return &ImageManager{Log: log}
 }
 
-type EntandoAppImages map[string]interface{}
-
 func (e EntandoAppImages) manageImageKey(baseKey string) string {
 	key := baseKey
-	if !utils.IsOlmInstallation() {
+	if utils.IsOlmInstallation() {
 		key = key + common.TagKey
 	}
-	k, _ := e[key].(string)
+	k, _ := e.images[key].(string)
 	return k
 
 }
@@ -38,21 +36,25 @@ func (e EntandoAppImages) FetchComponentManager() string {
 }
 
 func (e EntandoAppImages) FetchDeApp() string {
-	var k string
-	if utils.IsOlmInstallation() {
-		k, _ = e[common.DeAppEapKey].(string)
+	var imageUrl string
+	if utils.IsImageSetTypeCommunity(e.cr) {
+		key := e.manageImageKey(common.DeAppKeyTag)
+		imageUrl, _ = e.images[key].(string)
 	} else {
-		k, _ = e[common.DeAppKeyTag].(string)
+		key := e.manageImageKey(common.DeAppEapKey)
+		imageUrl, _ = e.images[key].(string)
 	}
-	return k
+	return imageUrl
 }
 
 func (e EntandoAppImages) FetchKeycloak() string {
 	var k string
-	if utils.IsOlmInstallation() {
-		k, _ = e[common.KeycloakSsoKey].(string)
+	if utils.IsImageSetTypeCommunity(e.cr) {
+		key := e.manageImageKey(common.KeycloakKeyTag)
+		k, _ = e.images[key].(string)
 	} else {
-		k, _ = e[common.KeycloakKeyTag].(string)
+		key := e.manageImageKey(common.KeycloakSsoKey)
+		k, _ = e.images[key].(string)
 	}
 	return k
 }
@@ -69,12 +71,19 @@ func (e EntandoAppImages) FetchK8sAppPluginLinkController() string {
 	return e.manageImageKey(common.K8sAppPluginLinkControllerKey)
 }
 
-type EntandoAppList map[string]EntandoAppImages
+type EntandoAppImages struct {
+	images map[string]interface{}
+	cr     *v1alpha1.EntandoAppV2
+}
+
+type entandoAppImages map[string]interface{}
+
+type entandoAppList map[string]entandoAppImages
 
 // TODO read from yaml ???
 // FIXME! use struct not map[string] to obtain immutability with constants
-var apps = EntandoAppList{
-	"7.0.2": EntandoAppImages{
+var apps = entandoAppList{
+	"7.0.2": entandoAppImages{
 		common.AppBuilderKeyTag:                 "registry.hub.docker.com/entando/app-builder:7.0.2",
 		common.AppBuilderKey:                    "registry.hub.docker.com/entando/app-builder@sha256:9d54b125b96c861dcf4af311dc47e1f54ee58810c3b16bd50b9f4a15fcf85edd",
 		common.ComponentManagerKeyTag:           "registry.hub.docker.com/entando/entando-component-manager:7.0.2",
@@ -94,7 +103,7 @@ var apps = EntandoAppList{
 		common.K8sAppPluginLinkControllerkeyTag: "registry.hub.docker.com/entando/entando-k8s-app-plugin-link-controller:7.0.2",
 		common.K8sAppPluginLinkControllerKey:    "registry.hub.docker.com/entando/entando-k8s-app-plugin-link-controller@sha256:bf71073f3e4d6c6815cbdc582a984695b5944cf3c82e603386a96bc0a1b4bd74",
 	},
-	"7.1.0": EntandoAppImages{
+	"7.1.0": entandoAppImages{
 		common.AppBuilderKeyTag:                 "registry.hub.docker.com/entando/app-builder:7.1.0",
 		common.AppBuilderKey:                    "registry.hub.docker.com/entando/app-builder@sha256:b09c3d47d667f0f58c1837e6427b37231f90a6c71b9e62c2bbc5c2633b9b3a55",
 		common.ComponentManagerKeyTag:           "registry.hub.docker.com/entando/entando-component-manager:7.1.0",
@@ -114,7 +123,7 @@ var apps = EntandoAppList{
 		common.K8sAppPluginLinkControllerkeyTag: "registry.hub.docker.com/entando/entando-k8s-app-plugin-link-controller:7.1.0",
 		common.K8sAppPluginLinkControllerKey:    "registry.hub.docker.com/entando/entando-k8s-app-plugin-link-controller@sha256:d9e9cdcbf2abec4b0d1253955d4dffd01de284d32f40ac42ec18aa3e94e32db4",
 	},
-	"7.1.1": EntandoAppImages{
+	"7.1.1": entandoAppImages{
 		common.AppBuilderKeyTag:                 "registry.hub.docker.com/entando/app-builder:7.1.1",
 		common.AppBuilderKey:                    "registry.hub.docker.com/entando/app-builder@sha256:33ea636090352a919735aa44cc2aaf2c79e8cb15b19216574964ec41c98f5c58",
 		common.ComponentManagerKeyTag:           "registry.hub.docker.com/entando/entando-component-manager:7.1.1",
@@ -136,54 +145,48 @@ var apps = EntandoAppList{
 	},
 }
 
-func (i *ImageManager) FetchImagesByAppVersion(version string) EntandoAppImages {
+func (i *ImageManager) FetchImagesByAppVersion(cr *v1alpha1.EntandoAppV2) EntandoAppImages {
 	log := i.Log.WithName("common")
-
+	version := cr.Spec.Version
 	log.Info("Fetch entando app images", "version", version)
 
 	if images, ok := apps[version]; ok {
-		return utils.CopyMap(images)
+		return EntandoAppImages{utils.CopyMap(images), cr}
 	} else {
-		log.Info("Entando version not found")
-		return nil
-
+		log.Info("The catalog does not contain the requested App Version ", "version", cr.Spec.Version)
+		return EntandoAppImages{nil, cr}
 	}
 }
 
 // FetchAndComposeImagesMap fetch and return the images to update to
-func (r *ImageManager) FetchAndComposeImagesMap(entandoAppV2 v1alpha1.EntandoAppV2) (EntandoAppImages, error) {
+func (r *ImageManager) FetchAndComposeImagesMap(cr *v1alpha1.EntandoAppV2) (EntandoAppImages, error) {
 
-	images := r.FetchImagesByAppVersion(entandoAppV2.Spec.Version)
-	if images == nil {
-		images = EntandoAppImages{}
-		r.Log.Info("The catalog does not contain the requested App Version ",
-			"version", entandoAppV2.Spec.Version)
-	}
+	images := r.FetchImagesByAppVersion(cr)
 
-	if err := r.checkTagOrDigest(entandoAppV2); err != nil {
+	if err := r.checkTagOrDigest(*cr); err != nil {
 		return EntandoAppImages{}, err
 	}
 
-	if len(entandoAppV2.Spec.AppBuilder.ImageOverride) > 0 {
-		images[common.AppBuilderKey] = entandoAppV2.Spec.AppBuilder.ImageOverride
+	if len(cr.Spec.AppBuilder.ImageOverride) > 0 {
+		images.images[common.AppBuilderKey] = cr.Spec.AppBuilder.ImageOverride
 	}
-	if len(entandoAppV2.Spec.ComponentManager.ImageOverride) > 0 {
-		images[common.ComponentManagerKey] = entandoAppV2.Spec.ComponentManager.ImageOverride
+	if len(cr.Spec.ComponentManager.ImageOverride) > 0 {
+		images.images[common.ComponentManagerKey] = cr.Spec.ComponentManager.ImageOverride
 	}
-	if len(entandoAppV2.Spec.DeApp.ImageOverride) > 0 {
-		images[common.DeAppKey] = entandoAppV2.Spec.DeApp.ImageOverride
+	if len(cr.Spec.DeApp.ImageOverride) > 0 {
+		images.images[common.DeAppKey] = cr.Spec.DeApp.ImageOverride
 	}
-	if len(entandoAppV2.Spec.Keycloak.ImageOverride) > 0 {
-		images[common.KeycloakKey] = entandoAppV2.Spec.Keycloak.ImageOverride
+	if len(cr.Spec.Keycloak.ImageOverride) > 0 {
+		images.images[common.KeycloakKey] = cr.Spec.Keycloak.ImageOverride
 	}
-	if len(entandoAppV2.Spec.K8sService.ImageOverride) > 0 {
-		images[common.K8sServiceKey] = entandoAppV2.Spec.K8sService.ImageOverride
+	if len(cr.Spec.K8sService.ImageOverride) > 0 {
+		images.images[common.K8sServiceKey] = cr.Spec.K8sService.ImageOverride
 	}
-	if len(entandoAppV2.Spec.K8sPluginController.ImageOverride) > 0 {
-		images[common.K8sPluginControllerKey] = entandoAppV2.Spec.K8sPluginController.ImageOverride
+	if len(cr.Spec.K8sPluginController.ImageOverride) > 0 {
+		images.images[common.K8sPluginControllerKey] = cr.Spec.K8sPluginController.ImageOverride
 	}
-	if len(entandoAppV2.Spec.K8sAppPluginLinkController.ImageOverride) > 0 {
-		images[common.K8sAppPluginLinkControllerKey] = entandoAppV2.Spec.K8sAppPluginLinkController.ImageOverride
+	if len(cr.Spec.K8sAppPluginLinkController.ImageOverride) > 0 {
+		images.images[common.K8sAppPluginLinkControllerKey] = cr.Spec.K8sAppPluginLinkController.ImageOverride
 	}
 
 	r.Log.Info("image", "app-builder", images.FetchAppBuilder())

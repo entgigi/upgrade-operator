@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/common"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -41,6 +42,10 @@ func IsOlmInstallation() bool {
 		return true
 	}
 	return false
+}
+
+func IsImageSetTypeCommunity(cr *v1alpha1.EntandoAppV2) bool {
+	return cr.Spec.ImageSetType == common.ImageSetTypeCommunity
 }
 
 func GetOperatorDeploymentType() string {
