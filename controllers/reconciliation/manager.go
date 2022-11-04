@@ -2,13 +2,14 @@ package reconciliation
 
 import (
 	"context"
-
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/common"
 	"github.com/entgigi/upgrade-operator.git/legacy"
 	"github.com/entgigi/upgrade-operator.git/service"
 	"github.com/entgigi/upgrade-operator.git/utils"
 	"github.com/go-logr/logr"
+	v1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -133,4 +134,56 @@ func (r *ReconcileManager) reconcileComponent(ctx context.Context,
 		return nil, err
 	}
 	return r.statusUpdater.IncrementProgress(ctx, req.NamespacedName)
+}
+
+// mustGetDeployment try to get the first deployment starting by the entando label dedicated to identify the component
+// return the found Deployment if only 1 Deployment corresponds to the search criteria. return err otherwise
+func (r *ReconcileManager) mustGetDeployment(ctx context.Context, entandoAppName string, kubeComponentId string) (*v1.Deployment, error) {
+
+	labels := utils.BuildDeploymentLabelSelectorWithAppName(entandoAppName, kubeComponentId)
+	return utils.MustGetFirstDeploymentByLabels(ctx, r.Client, labels)
+}
+
+// updateCommonDeploymentData update the received deployment applying the changes common to every entando deployment
+// return the updated deployment
+// it does not update the deployment present in Kubernetes
+func (r *ReconcileManager) updateCommonDeploymentData(deployment *v1.Deployment,
+	image string,
+	genericEnvVars []corev1.EnvVar,
+	specificEnvVars []corev1.EnvVar) *v1.Deployment {
+
+	deployment = r.updateImage(deployment, image)
+	deployment = r.mergeEnvVars(deployment, genericEnvVars, specificEnvVars)
+
+	return deployment
+}
+
+// updateImage update the Spec.Template.Spec.Containers[0].Image property of the received deployment with the one
+// contained in the image param
+// return the updated deployment
+func (r *ReconcileManager) updateImage(deployment *v1.Deployment, image string) *v1.Deployment {
+
+	if image == "" {
+		r.Log.Info("no new image found for the deployment " + deployment.Name)
+	} else {
+		deployment.Spec.Template.Spec.Containers[0].Image = image
+	}
+
+	return deployment
+}
+
+// mergeEnvVars merge the received environment variables
+// the order is:
+//   - deployment env vars
+//   - overridden by genericEnvVars
+//   - overridden by specificEnvVars
+//
+// return the updated deployment
+func (r *ReconcileManager) mergeEnvVars(deployment *v1.Deployment,
+	genericEnvVars []corev1.EnvVar,
+	specificEnvVars []corev1.EnvVar) *v1.Deployment {
+
+	envVars := utils.MergeEnvVars(deployment, genericEnvVars, specificEnvVars)
+	deployment.Spec.Template.Spec.Containers[0].Env = envVars
+	return deployment
 }

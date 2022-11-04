@@ -82,7 +82,7 @@ func TestShouldConvertAnEnvVarSliceToMap(t *testing.T) {
 		},
 	}
 
-	vars := MergeEnvVars(appV2, &cmDepl)
+	vars := MergeEnvVars(&cmDepl, appV2.Spec.CommonEnvironmentVariables, appV2.Spec.ComponentManager.EnvironmentVariables)
 	for _, a := range vars {
 		fmt.Println("### " + a.Name + " --- " + a.Value)
 	}

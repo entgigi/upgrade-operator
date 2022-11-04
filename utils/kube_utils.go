@@ -3,8 +3,6 @@ package utils
 import (
 	"context"
 	"errors"
-	"fmt"
-	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -13,16 +11,18 @@ import (
 
 const DeploymentLabelKey = "entando.org/deployment"
 
-// MergeEnvVars merge the environment variable of the starting deployment with the ones specified in the EntandoAppV2 CR
-func MergeEnvVars(entandoAppV2 v1alpha1.EntandoAppV2, deployment *appsv1.Deployment) []corev1.EnvVar {
+// MergeEnvVars merge the environment variables of the starting deployment with the ones specified in the EntandoAppV2 CR
+func MergeEnvVars(deployment *appsv1.Deployment,
+	genericEnvVars []corev1.EnvVar,
+	specificEnvVars []corev1.EnvVar) []corev1.EnvVar {
 
 	envVarMap := ConvertEnvVarSliceToMap(deployment.Spec.Template.Spec.Containers[0].Env)
 
-	for _, e := range entandoAppV2.Spec.CommonEnvironmentVariables {
+	for _, e := range genericEnvVars {
 		envVarMap[e.Name] = e
 	}
 
-	for _, e := range entandoAppV2.Spec.ComponentManager.EnvironmentVariables {
+	for _, e := range specificEnvVars {
 		envVarMap[e.Name] = e
 	}
 
@@ -31,22 +31,14 @@ func MergeEnvVars(entandoAppV2 v1alpha1.EntandoAppV2, deployment *appsv1.Deploym
 	return ConvertEnvVarMapToSlice(envVarMap)
 }
 
-//func FindDeploymentByLabels(ctx context.Context, namespace string, labelsMap map[string]string) (appsv1.Deployment, error) {
-//	//labelSelector, _ := labels.Parse("team=my-cool-team,service notin (payment,registration)")
-//	for key, value := range labelsMap {
-//
-//	}
-//
-//	// This label value has bad characters (the leading `-`).
-//	selector, err := labels.ValidatedSelectorFromSet(labelsMap)
-//	if err != nil {
-//		fmt.Printf("bad selector set: %v", err)
-//	}
-//}
+// BuildDeploymentLabelSelectorWithAppName build and return the label to select an entando deployment
+func BuildDeploymentLabelSelectorWithAppName(appName string, componentName string) map[string]string {
+	return BuildDeploymentLabelSelector(appName + "-" + componentName)
+}
 
-// BuildEntandoDeploymentLabelSelector build and return the label to select an entando component
-func BuildEntandoDeploymentLabelSelector(appName string, componentName string) map[string]string {
-	return map[string]string{DeploymentLabelKey: appName + "-" + componentName}
+// BuildDeploymentLabelSelector build and return the label to select an entando deployment
+func BuildDeploymentLabelSelector(componentName string) map[string]string {
+	return map[string]string{DeploymentLabelKey: componentName}
 }
 
 func MustGetFirstDeploymentByLabels(ctx context.Context, kubeClient client.Client, labelsMap map[string]string) (*appsv1.Deployment, error) {
@@ -72,7 +64,7 @@ func FindDeploymentsByLabels(ctx context.Context, kubeClient client.Client, labe
 
 	selector, err := labels.ValidatedSelectorFromSet(labelsMap)
 	if err != nil {
-		fmt.Printf("bad selector set: %v", err)
+		return nil, err
 	}
 
 	//namespaceOptions := client.InNamespace(namespace)
