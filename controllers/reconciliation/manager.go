@@ -20,7 +20,7 @@ const (
 
 type ReconcileManager struct {
 	common.BaseK8sStructure
-	statusUpdater *StatusUpdater
+	StatusUpdater *StatusUpdater
 }
 
 type ReconcileComponentFunc func(ctx context.Context, image string, req ctrl.Request, cr *v1alpha1.EntandoAppV2) error
@@ -38,7 +38,7 @@ func NewReconcileManager(client client.Client, log logr.Logger) *ReconcileManage
 func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) error {
 
 	r.Log.Info("Starting main reconciliation flow")
-	r.statusUpdater.SetReconcileStarted(ctx, req.NamespacedName, numberOfSteps)
+	r.StatusUpdater.SetReconcileStarted(ctx, req.NamespacedName, numberOfSteps)
 
 	var err error
 	crReadOnly := &v1alpha1.EntandoAppV2{}
@@ -78,16 +78,16 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 	// progress step not added because is not a business step but jsut technical
 	legacyReconcile := legacy.NewLegacyReconcileManager(r.Client, r.Log)
 	if utils.IsOlmInstallation() {
-		r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "Csv")
+		r.StatusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "Csv")
 
 		if err = legacyReconcile.ReconcileClusterServiceVersion(ctx, req, images); err != nil {
-			r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "CsvReconciliationFailed")
+			r.StatusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "CsvReconciliationFailed")
 			return err
 		}
 	} else {
-		r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "ImageInfo")
+		r.StatusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "ImageInfo")
 		if err = legacyReconcile.ReconcileImageInfo(ctx, req, images); err != nil {
-			r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "ImageInfoReconciliationFailed")
+			r.StatusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "ImageInfoReconciliationFailed")
 			return err
 		}
 	}
@@ -97,12 +97,12 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 	// in non-olm install we need to reconcile k8s-service deployment
 	if !utils.IsOlmInstallation() {
 		// K8sService
-		r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "K8sService")
+		r.StatusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, "K8sService")
 
 		// TODO decide if add the k8service in the progress count. in that case we could also consider to adapt the k8s-service reconciliation function to the standard format
 
 		if err = r.reconcileK8sService(ctx, req, images.FetchK8sService(), *crReadOnly); err != nil {
-			r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "K8sServiceReconciliationFailed")
+			r.StatusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "K8sServiceReconciliationFailed")
 			return err
 		}
 		// legacy K8sCoordinator restart ? no needs
@@ -114,7 +114,7 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 		r.Log.Info("WARNING: progress different from total at the end of reconciliation", "progress", cr.Status.Progress, "total", numberOfSteps)
 	}
 
-	r.statusUpdater.SetReconcileSuccessfullyCompleted(ctx, req.NamespacedName)
+	r.StatusUpdater.SetReconcileSuccessfullyCompleted(ctx, req.NamespacedName)
 
 	return nil
 }
@@ -127,10 +127,10 @@ func (r *ReconcileManager) reconcileComponent(ctx context.Context,
 	imageUrl string,
 	cr *v1alpha1.EntandoAppV2) (*v1alpha1.EntandoAppV2, error) {
 
-	r.statusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, componentName)
+	r.StatusUpdater.SetReconcileProcessingComponent(ctx, req.NamespacedName, componentName)
 	if err := reconcile(ctx, imageUrl, req, cr); err != nil {
-		r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, componentName+"ReconciliationFailed")
+		r.StatusUpdater.SetReconcileFailed(ctx, req.NamespacedName, componentName+"ReconciliationFailed")
 		return nil, err
 	}
-	return r.statusUpdater.IncrementProgress(ctx, req.NamespacedName)
+	return r.StatusUpdater.IncrementProgress(ctx, req.NamespacedName)
 }

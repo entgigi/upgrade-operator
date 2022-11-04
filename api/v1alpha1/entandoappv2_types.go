@@ -100,6 +100,7 @@ type EntandoAppV2Status struct {
 // An EntandoAppV2 deploys the components required to upgrade an Entando App. The server side
 // components that are deployed include the Entando App Engine, the Entando Component Manager,
 // the Entando App Builder, and the user facing application.
+// +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=`.status.conditions[?(@.type=="Ready")].status`,description="state of EntandoApp"
 type EntandoAppV2 struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
