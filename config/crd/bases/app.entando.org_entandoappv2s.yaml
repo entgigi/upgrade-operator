@@ -517,6 +517,10 @@ spec:
                 description: 'ImageSetType is used to select the list of image to
                   use, the admitted values are: RedhatCertified or Community'
                 type: string
+              ingressHostName:
+                description: IngressHostName is the host name that Ingress uses to
+                  control access to the app
+                type: string
               k8sAppPluginLinkController:
                 description: Section used to configure legacy operator app-plugin-link-controller
                 properties:

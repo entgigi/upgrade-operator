@@ -27,7 +27,7 @@ func (r *ReconcileManager) reconcileK8sService(ctx context.Context, req ctrl.Req
 
 	deployment = r.updateCommonDeploymentData(deployment,
 		image,
-		r.envVarByVersion(cr, componentManagerEnv),
+		r.envVarByVersion(cr, k8sServiceManagerEnv),
 		cr.Spec.CommonEnvironmentVariables,
 		cr.Spec.K8sService.EnvironmentVariables)
 
@@ -43,6 +43,6 @@ func (r *ReconcileManager) reconcileK8sService(ctx context.Context, req ctrl.Req
 	return nil
 }
 
-var k8sServiceManagerEnv = ListApplicationEnvVar{
-	"7.1.1": ApplicationEnvVar{},
+var k8sServiceManagerEnv = listApplicationEnvVar{
+	"7.1.1": applicationEnvVar{},
 }

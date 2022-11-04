@@ -36,8 +36,8 @@ func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image 
 	return nil
 }
 
-var componentManagerEnv = ListApplicationEnvVar{
-	"7.1.1": ApplicationEnvVar{
+var componentManagerEnv = listApplicationEnvVar{
+	"7.1.1": applicationEnvVar{
 		"ENTANDO_APP_HOST_NAME": calculateAppHostName,
 		"ENTANDO_APP_USE_TLS":   calculateAppTls,
 	},
