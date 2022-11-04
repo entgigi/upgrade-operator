@@ -17,32 +17,46 @@ func NewImageManager(log logr.Logger) *ImageManager {
 	return &ImageManager{Log: log}
 }
 
-func (e EntandoAppImages) chooseKeyWithTagOrDigest(baseKey string) string {
+func (e EntandoAppImages) ChooseKeyByTypeAndVersion(cr *v1alpha1.EntandoAppV2, certifiedKey string, communityKey string) string {
+	key := certifiedKey
+	if utils.IsImageSetTypeCommunity(cr) {
+		key = communityKey
+	}
+	return e.ChooseKeyWithTagOrDigest(key)
+}
+
+func (e EntandoAppImages) ChooseKeyWithTagOrDigest(baseKey string) string {
 	key := baseKey
-	if utils.IsOlmInstallation() {
+	if !utils.IsOlmInstallation() {
 		key = key + common.TagKey
 	}
+	return key
+}
+
+func (e EntandoAppImages) fetchImageUrlFromBaseKey(baseKey string) string {
+	key := e.ChooseKeyWithTagOrDigest(baseKey)
 	k, _ := e.images[key].(string)
 	return k
-
 }
 
 func (e EntandoAppImages) FetchAppBuilder() string {
-	return e.chooseKeyWithTagOrDigest(common.AppBuilderKey)
+	return e.fetchImageUrlFromBaseKey(common.AppBuilderKey)
 }
 
 func (e EntandoAppImages) FetchComponentManager() string {
-	return e.chooseKeyWithTagOrDigest(common.ComponentManagerKey)
+	return e.fetchImageUrlFromBaseKey(common.ComponentManagerKey)
 }
 
 func (e EntandoAppImages) FetchDeApp() string {
 	var imageUrl string
 	if utils.IsImageSetTypeCommunity(e.cr) {
-		key := e.chooseKeyWithTagOrDigest(common.DeAppKey)
+		key := e.ChooseKeyWithTagOrDigest(common.DeAppKey)
 		imageUrl, _ = e.images[key].(string)
+		// fmt.Println("============= FetchDeApp" + key + " " + imageUrl)
 	} else {
-		key := e.chooseKeyWithTagOrDigest(common.DeAppEapKey)
+		key := e.ChooseKeyWithTagOrDigest(common.DeAppEapKey)
 		imageUrl, _ = e.images[key].(string)
+		// fmt.Println("============= FetchDeApp" + key + " " + imageUrl)
 	}
 	return imageUrl
 }
@@ -50,25 +64,25 @@ func (e EntandoAppImages) FetchDeApp() string {
 func (e EntandoAppImages) FetchKeycloak() string {
 	var k string
 	if utils.IsImageSetTypeCommunity(e.cr) {
-		key := e.chooseKeyWithTagOrDigest(common.KeycloakKey)
+		key := e.ChooseKeyWithTagOrDigest(common.KeycloakKey)
 		k, _ = e.images[key].(string)
 	} else {
-		key := e.chooseKeyWithTagOrDigest(common.KeycloakSsoKey)
+		key := e.ChooseKeyWithTagOrDigest(common.KeycloakSsoKey)
 		k, _ = e.images[key].(string)
 	}
 	return k
 }
 
 func (e EntandoAppImages) FetchK8sService() string {
-	return e.chooseKeyWithTagOrDigest(common.K8sServiceKey)
+	return e.fetchImageUrlFromBaseKey(common.K8sServiceKey)
 }
 
 func (e EntandoAppImages) FetchK8sPluginController() string {
-	return e.chooseKeyWithTagOrDigest(common.K8sPluginControllerKey)
+	return e.fetchImageUrlFromBaseKey(common.K8sPluginControllerKey)
 }
 
 func (e EntandoAppImages) FetchK8sAppPluginLinkController() string {
-	return e.chooseKeyWithTagOrDigest(common.K8sAppPluginLinkControllerKey)
+	return e.fetchImageUrlFromBaseKey(common.K8sAppPluginLinkControllerKey)
 }
 
 type EntandoAppImages struct {
@@ -154,7 +168,7 @@ func (i *ImageManager) FetchImagesByAppVersion(cr *v1alpha1.EntandoAppV2) Entand
 		return EntandoAppImages{utils.CopyMap(images), cr}
 	} else {
 		log.Info("The catalog does not contain the requested App Version ", "version", cr.Spec.Version)
-		return EntandoAppImages{nil, cr}
+		return EntandoAppImages{make(entandoAppImages, 0), cr}
 	}
 }
 
@@ -168,25 +182,32 @@ func (r *ImageManager) FetchAndComposeImagesMap(cr *v1alpha1.EntandoAppV2) (Enta
 	}
 
 	if len(cr.Spec.AppBuilder.ImageOverride) > 0 {
-		images.images[common.AppBuilderKey] = cr.Spec.AppBuilder.ImageOverride
+		key := EntandoAppImages{}.ChooseKeyWithTagOrDigest(common.AppBuilderKey)
+		images.images[key] = cr.Spec.AppBuilder.ImageOverride
 	}
 	if len(cr.Spec.ComponentManager.ImageOverride) > 0 {
-		images.images[common.ComponentManagerKey] = cr.Spec.ComponentManager.ImageOverride
+		key := EntandoAppImages{}.ChooseKeyWithTagOrDigest(common.ComponentManagerKey)
+		images.images[key] = cr.Spec.ComponentManager.ImageOverride
 	}
 	if len(cr.Spec.DeApp.ImageOverride) > 0 {
-		images.images[common.DeAppKey] = cr.Spec.DeApp.ImageOverride
+		key := EntandoAppImages{}.ChooseKeyByTypeAndVersion(cr, common.DeAppEapKey, common.DeAppKey)
+		images.images[key] = cr.Spec.DeApp.ImageOverride
 	}
 	if len(cr.Spec.Keycloak.ImageOverride) > 0 {
-		images.images[common.KeycloakKey] = cr.Spec.Keycloak.ImageOverride
+		key := EntandoAppImages{}.ChooseKeyByTypeAndVersion(cr, common.KeycloakSsoKey, common.KeycloakKey)
+		images.images[key] = cr.Spec.Keycloak.ImageOverride
 	}
 	if len(cr.Spec.K8sService.ImageOverride) > 0 {
-		images.images[common.K8sServiceKey] = cr.Spec.K8sService.ImageOverride
+		key := EntandoAppImages{}.ChooseKeyWithTagOrDigest(common.K8sServiceKey)
+		images.images[key] = cr.Spec.K8sService.ImageOverride
 	}
 	if len(cr.Spec.K8sPluginController.ImageOverride) > 0 {
-		images.images[common.K8sPluginControllerKey] = cr.Spec.K8sPluginController.ImageOverride
+		key := EntandoAppImages{}.ChooseKeyWithTagOrDigest(common.K8sPluginControllerKey)
+		images.images[key] = cr.Spec.K8sPluginController.ImageOverride
 	}
 	if len(cr.Spec.K8sAppPluginLinkController.ImageOverride) > 0 {
-		images.images[common.K8sAppPluginLinkControllerKey] = cr.Spec.K8sAppPluginLinkController.ImageOverride
+		key := EntandoAppImages{}.ChooseKeyWithTagOrDigest(common.K8sAppPluginLinkControllerKey)
+		images.images[key] = cr.Spec.K8sAppPluginLinkController.ImageOverride
 	}
 
 	r.Log.Info("image", "app-builder", images.FetchAppBuilder())

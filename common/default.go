@@ -30,7 +30,7 @@ const (
 	WatchNamespaceEnvVar        string = "WATCH_NAMESPACE"
 	OperatorTypeEnvVar          string = "ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE"
 	OperatorTypeOlm             string = "OLM"
-	OperatorTypeCommunity       string = "Plain"
-	ImageSetTypeRedHatCertified string = "Community"
-	ImageSetTypeCommunity       string = "RedhatCertified"
+	OperatorTypePlain           string = "Plain"
+	ImageSetTypeRedHatCertified string = "RedhatCertified"
+	ImageSetTypeCommunity       string = "Community"
 )
