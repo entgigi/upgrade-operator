@@ -12,18 +12,22 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-func TestImagemapFromVersion(t *testing.T) {
-	// OLM or not
-	// Community or not
+var imageManager *ImageManager
+
+func setup() {
 	opts := zap.Options{
 		Development: true,
 		TimeEncoder: zapcore.ISO8601TimeEncoder,
 	}
 	logf.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	imageManager = NewImageManager(logf.Log)
+}
+
+func TestImagemapFromVersion(t *testing.T) {
+	setup()
 
 	// OLM + RedhatCertified
 	os.Setenv("ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE", "OLM")
-	imageManager := NewImageManager(logf.Log)
 	cr := &v1alpha1.EntandoAppV2{Spec: v1alpha1.EntandoAppV2Spec{Version: "7.1.1", ImageSetType: "RedhatCertified"}}
 	images, _ := imageManager.FetchAndComposeImagesMap(cr)
 
@@ -70,15 +74,10 @@ func TestImagemapFromVersion(t *testing.T) {
 }
 
 func TestImagemapFromVersionAndOverride(t *testing.T) {
-	opts := zap.Options{
-		Development: true,
-		TimeEncoder: zapcore.ISO8601TimeEncoder,
-	}
-	logf.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	setup()
 
 	// OLM + RedhatCertified
 	os.Setenv("ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE", "OLM")
-	imageManager := NewImageManager(logf.Log)
 
 	const (
 		appBuilder = "myrepo.com/myorg/app-builder@sha256:33ea636090352a919735aa44cc2aaf2c79e8cb15b19216574964ec41c98f5c58"
@@ -120,11 +119,7 @@ func TestImagemapFromOverrideAndNonExistentVersion(t *testing.T) {
 }
 
 func TestImagemapOlmWithTag(t *testing.T) {
-	opts := zap.Options{
-		Development: true,
-		TimeEncoder: zapcore.ISO8601TimeEncoder,
-	}
-	logf.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	setup()
 
 	// OLM + RedhatCertified
 	os.Setenv("ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE", "OLM")
