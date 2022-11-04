@@ -1,0 +1,24 @@
+# permissions for end users to edit entandoapps.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: entandoapp-editor-role
+rules:
+- apiGroups:
+  - entando.org
+  resources:
+  - entandoapps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - entando.org
+  resources:
+  - entandoapps/status
+  verbs:
+  - get
