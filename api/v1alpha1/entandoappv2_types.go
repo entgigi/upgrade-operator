@@ -31,6 +31,8 @@ type EntandoAppV2Spec struct {
 	EntandoAppName string `json:"entandoAppName,omitempty"`
 	// ImageSetType is used to select the list of image to use, the admitted values are: RedhatCertified or Community
 	ImageSetType string `json:"imageSetType,omitempty"`
+	// IngressHostName is the host name that Ingress uses to control access to the app
+	IngressHostName string `json:"ingressHostName,omitempty"`
 	// used to add Environment Variables to all EntandoApp components
 	CommonEnvironmentVariables []corev1.EnvVar `json:"commonEnvironmentVariables,omitempty"`
 	// Section used to configure AppBuilder

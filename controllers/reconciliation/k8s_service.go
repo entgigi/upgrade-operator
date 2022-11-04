@@ -13,7 +13,7 @@ const (
 	K8sServiceDeploymentName = "entando-k8s-service"
 )
 
-func (r *ReconcileManager) reconcileK8sService(ctx context.Context, req ctrl.Request, image string, entandoAppV2 v1alpha1.EntandoAppV2) error {
+func (r *ReconcileManager) reconcileK8sService(ctx context.Context, req ctrl.Request, image string, cr *v1alpha1.EntandoAppV2) error {
 	r.Log.Info("Starting k8s-service reconciliation flow")
 
 	deployment := &appsv1.Deployment{}
@@ -27,8 +27,9 @@ func (r *ReconcileManager) reconcileK8sService(ctx context.Context, req ctrl.Req
 
 	deployment = r.updateCommonDeploymentData(deployment,
 		image,
-		entandoAppV2.Spec.CommonEnvironmentVariables,
-		entandoAppV2.Spec.K8sService.EnvironmentVariables)
+		r.envVarByVersion(cr, componentManagerEnv),
+		cr.Spec.CommonEnvironmentVariables,
+		cr.Spec.K8sService.EnvironmentVariables)
 
 	if err := r.Update(ctx, deployment); err != nil {
 		return err
@@ -40,4 +41,8 @@ func (r *ReconcileManager) reconcileK8sService(ctx context.Context, req ctrl.Req
 	r.Log.Info("Finished k8s-service reconciliation flow")
 
 	return nil
+}
+
+var k8sServiceManagerEnv = ListApplicationEnvVar{
+	"7.1.1": ApplicationEnvVar{},
 }

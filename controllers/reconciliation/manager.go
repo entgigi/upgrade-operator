@@ -103,7 +103,7 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request) 
 
 		// TODO decide if add the k8service in the progress count. in that case we could also consider to adapt the k8s-service reconciliation function to the standard format
 
-		if err = r.reconcileK8sService(ctx, req, images.FetchK8sService(), *crReadOnly); err != nil {
+		if err = r.reconcileK8sService(ctx, req, images.FetchK8sService(), crReadOnly); err != nil {
 			r.statusUpdater.SetReconcileFailed(ctx, req.NamespacedName, "K8sServiceReconciliationFailed")
 			return err
 		}
@@ -150,6 +150,7 @@ func (r *ReconcileManager) mustGetDeployment(ctx context.Context, entandoAppName
 // it does not update the deployment present in Kubernetes
 func (r *ReconcileManager) updateCommonDeploymentData(deployment *v1.Deployment,
 	image string,
+	componentVersionEnvVars []corev1.EnvVar,
 	genericEnvVars []corev1.EnvVar,
 	specificEnvVars []corev1.EnvVar) *v1.Deployment {
 
@@ -187,4 +188,31 @@ func (r *ReconcileManager) mergeEnvVars(deployment *v1.Deployment,
 	envVars := utils.MergeEnvVars(deployment, genericEnvVars, specificEnvVars)
 	deployment.Spec.Template.Spec.Containers[0].Env = envVars
 	return deployment
+}
+
+func (r *ReconcileManager) applyNewEnvVar(deployment *v1.Deployment, newEnvs []corev1.EnvVar) *v1.Deployment {
+
+	actualEnvMap := utils.ConvertEnvVarSliceToMap(deployment.Spec.Template.Spec.Containers[0].Env)
+	for _, env := range newEnvs {
+		if _, found := actualEnvMap[env.Name]; !found {
+			deployment.Spec.Template.Spec.Containers[0].Env = append(deployment.Spec.Template.Spec.Containers[0].Env, env)
+		}
+	}
+
+	return deployment
+}
+
+type ApplicationEnvVar map[string]func(r *ReconcileManager, cr *v1alpha1.EntandoAppV2) string
+
+type ListApplicationEnvVar map[string]ApplicationEnvVar
+
+func (r *ReconcileManager) envVarByVersion(cr *v1alpha1.EntandoAppV2, mapEnv ListApplicationEnvVar) []corev1.EnvVar {
+	var newAppEnvs []corev1.EnvVar = make([]corev1.EnvVar, 0)
+	if envs, ok := mapEnv[cr.Spec.Version]; ok {
+		for key, value := range envs {
+			newAppEnvs = append(newAppEnvs, corev1.EnvVar{Name: key, Value: value(r, cr)})
+		}
+		return nil
+	}
+	return newAppEnvs
 }

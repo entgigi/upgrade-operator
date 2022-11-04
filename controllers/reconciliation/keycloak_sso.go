@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/utils"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -39,12 +40,12 @@ func (r *ReconcileManager) reconcileKeycloak(ctx context.Context, image string, 
 			return fmt.Errorf("internal Keycloak requirement but %d found", len(deployments.Items))
 			// TODO manage the case with 0 deployment by deploy a new keycloak in the future?
 		}
-
 		// otherwise reconcile
 		deployment := &deployments.Items[0]
 
 		deployment = r.updateCommonDeploymentData(deployment,
 			image,
+			r.envVarByVersion(cr, keycloakManagerEnv),
 			cr.Spec.CommonEnvironmentVariables,
 			cr.Spec.Keycloak.EnvironmentVariables)
 
@@ -59,4 +60,8 @@ func (r *ReconcileManager) reconcileKeycloak(ctx context.Context, image string, 
 	}
 
 	return nil
+}
+
+var keycloakManagerEnv = ListApplicationEnvVar{
+	"7.1.1": ApplicationEnvVar{},
 }
