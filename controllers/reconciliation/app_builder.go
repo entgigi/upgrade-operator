@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"time"
 )
 
 const appBuilderKubeId = "ab"
@@ -24,6 +25,9 @@ func (r *ReconcileManager) reconcileAppBuilder(ctx context.Context, image string
 	if err = r.Update(ctx, deployment); err != nil {
 		return err
 	}
+
+	// FIXME remove
+	time.Sleep(3 * time.Second)
 
 	r.Log.Info("Finished AppBuilder reconciliation flow")
 	return nil

@@ -7,6 +7,7 @@ import (
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/utils"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"time"
 )
 
 const keycloakKubeId = "default-sso-in-namespace"
@@ -50,6 +51,9 @@ func (r *ReconcileManager) reconcileKeycloak(ctx context.Context, image string, 
 		if err := r.Update(ctx, deployment); err != nil {
 			return err
 		}
+
+		// FIXME remove
+		time.Sleep(3 * time.Second)
 
 		r.Log.Info("Finished Keycloak reconciliation flow")
 	}

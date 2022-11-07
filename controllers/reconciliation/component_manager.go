@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"time"
 )
 
 const componentManagerKubeId = "cm"
@@ -24,6 +25,9 @@ func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image 
 	if err = r.Update(ctx, deployment); err != nil {
 		return err
 	}
+
+	// FIXME remove
+	time.Sleep(3 * time.Second)
 
 	r.Log.Info("Finished ComponentManager reconciliation flow")
 

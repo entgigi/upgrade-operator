@@ -2,11 +2,11 @@ package reconciliation
 
 import (
 	"context"
-
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"time"
 )
 
 const (
@@ -33,6 +33,9 @@ func (r *ReconcileManager) reconcileK8sService(ctx context.Context, req ctrl.Req
 	if err := r.Update(ctx, deployment); err != nil {
 		return err
 	}
+
+	// FIXME remove
+	time.Sleep(3 * time.Second)
 
 	r.Log.Info("Finished k8s-service reconciliation flow")
 
