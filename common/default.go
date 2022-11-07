@@ -33,4 +33,8 @@ const (
 	OperatorTypePlain           string = "Plain"
 	ImageSetTypeRedHatCertified string = "RedhatCertified"
 	ImageSetTypeCommunity       string = "Community"
+
+	// UpdateStrategies
+	RecreateStrategy      string = "Recreate"
+	RollingUpdateStrategy string = "RollingUpdate"
 )

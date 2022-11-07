@@ -3,9 +3,12 @@ package utils
 import (
 	"context"
 	"errors"
+	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
+	"github.com/entgigi/upgrade-operator.git/common"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -83,4 +86,20 @@ func FindDeploymentsByLabels(ctx context.Context, kubeClient client.Client, labe
 	}
 
 	return deployments, nil
+}
+
+func ManageUpdateStrategy(deployment *appsv1.Deployment, cr *v1alpha1.EntandoAppV2) *appsv1.Deployment {
+	// TODO decide if move this function into an app scoped utils file
+
+	if cr.Spec.UpdateStrategy == common.RecreateStrategy {
+		maxUnavailable := intstr.FromString("100%")
+		maxSurge := intstr.FromString("0%")
+
+		deployment.Spec.Strategy.RollingUpdate = &appsv1.RollingUpdateDeployment{
+			MaxUnavailable: &maxUnavailable,
+			MaxSurge:       &maxSurge,
+		}
+	}
+
+	return deployment
 }

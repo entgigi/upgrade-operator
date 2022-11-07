@@ -2,8 +2,8 @@ package reconciliation
 
 import (
 	"context"
-
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
+	"github.com/entgigi/upgrade-operator.git/utils"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 )
@@ -23,6 +23,8 @@ func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image 
 		r.envVarByVersion(cr, componentManagerEnv),
 		cr.Spec.CommonEnvironmentVariables,
 		cr.Spec.ComponentManager.EnvironmentVariables)
+
+	deployment = utils.ManageUpdateStrategy(deployment, cr)
 
 	if err = r.Update(ctx, deployment); err != nil {
 		return err

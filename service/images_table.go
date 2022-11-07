@@ -50,7 +50,7 @@ var apps = entandoAppList{
 		common.DeAppEapKey:                      "registry.hub.docker.com/entando/entando-de-app-eap@sha256:b64761667234af704088c88ac97dfe25cad531e2390bb585d49f90d18e2bf535",
 		common.DeAppKeyTag:                      "registry.hub.docker.com/entando/entando-de-app-wildfly:7.1.0",
 		common.DeAppKey:                         "registry.hub.docker.com/entando/entando-de-app-wildfly@sha256:ac062b7b86fd0e0c64af6426137fcb54e44eed2edcea3b717df5414a2e111d35",
-		common.KeycloakSsoKeyTag:                "registry.hub.docker.com/entando/entando-redhat-sso:7.1.0",
+		common.KeycloakSsoKeyTag:                "registry.hub.docker.com/entando/entando-redhat-sso:7.0.0",
 		common.KeycloakSsoKey:                   "registry.hub.docker.com/entando/entando-redhat-sso@sha256:d91c8472a8676d884e789758391cfc36dbfc89318e5293e82d04411160bd132a",
 		common.KeycloakKeyTag:                   "registry.hub.docker.com/entando/entando-keycloak:7.0.1",
 		common.KeycloakKey:                      "registry.hub.docker.com/entando/entando-keycloak@sha256:e251ba0bf83c529bd1818d4b78cc74ed25b6573d8dc55f59d72b86194932c3ac",

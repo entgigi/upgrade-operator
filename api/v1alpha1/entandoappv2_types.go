@@ -33,6 +33,10 @@ type EntandoAppV2Spec struct {
 	ImageSetType string `json:"imageSetType,omitempty"`
 	// IngressHostName is the host name that Ingress uses to control access to the app
 	IngressHostName string `json:"ingressHostName,omitempty"`
+	// UpdateStrategy the strategy to apply during the upgrade of the deployments, the admitted values are: Recreate or RollingUpdate
+	// Recreate: deployments will be updated and scaled to 0, then they will be scaled up to 1 again
+	// RollingUpdate: deployments will be updated without scaling down to 0, trying to ensure 0 downtime
+	UpdateStrategy string `json:"updateStrategy,omitempty"`
 	// used to add Environment Variables to all EntandoApp components
 	CommonEnvironmentVariables []corev1.EnvVar `json:"commonEnvironmentVariables,omitempty"`
 	// Section used to configure AppBuilder
