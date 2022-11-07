@@ -43,6 +43,6 @@ func (r *ReconcileManager) reconcileK8sService(ctx context.Context, req ctrl.Req
 	return nil
 }
 
-var k8sServiceManagerEnv = listApplicationEnvVar{
+var k8sServiceManagerEnv = mapApplicationEnvVar{
 	"7.1.1": applicationEnvVar{},
 }

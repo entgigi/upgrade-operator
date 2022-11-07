@@ -62,6 +62,6 @@ func (r *ReconcileManager) reconcileKeycloak(ctx context.Context, image string, 
 	return nil
 }
 
-var keycloakManagerEnv = listApplicationEnvVar{
+var keycloakManagerEnv = mapApplicationEnvVar{
 	"7.1.1": applicationEnvVar{},
 }

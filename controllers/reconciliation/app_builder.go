@@ -35,6 +35,6 @@ func (r *ReconcileManager) reconcileAppBuilder(ctx context.Context, image string
 	return nil
 }
 
-var appBuilderManagerEnv = listApplicationEnvVar{
+var appBuilderManagerEnv = mapApplicationEnvVar{
 	"7.1.1": applicationEnvVar{},
 }

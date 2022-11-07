@@ -34,6 +34,6 @@ func (r *ReconcileManager) reconcileDeApp(ctx context.Context, image string, req
 	return nil
 }
 
-var deAppManagerEnv = listApplicationEnvVar{
+var deAppManagerEnv = mapApplicationEnvVar{
 	"7.1.1": applicationEnvVar{},
 }

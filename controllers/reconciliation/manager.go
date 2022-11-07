@@ -155,7 +155,7 @@ func (r *ReconcileManager) updateCommonDeploymentData(deployment *v1.Deployment,
 	specificEnvVars []corev1.EnvVar) *v1.Deployment {
 
 	deployment = r.updateImage(deployment, image)
-	deployment = r.applyNewEnvVar(deployment, componentVersionEnvVars)
+	deployment = r.applyVersionUpgradeEnvVar(deployment, componentVersionEnvVars)
 	deployment = r.mergeEnvVars(deployment, genericEnvVars, specificEnvVars)
 
 	return deployment
@@ -191,7 +191,7 @@ func (r *ReconcileManager) mergeEnvVars(deployment *v1.Deployment,
 	return deployment
 }
 
-func (r *ReconcileManager) applyNewEnvVar(deployment *v1.Deployment, newEnvs []corev1.EnvVar) *v1.Deployment {
+func (r *ReconcileManager) applyVersionUpgradeEnvVar(deployment *v1.Deployment, newEnvs []corev1.EnvVar) *v1.Deployment {
 
 	actualEnvMap := utils.ConvertEnvVarSliceToMap(deployment.Spec.Template.Spec.Containers[0].Env)
 	for _, env := range newEnvs {
@@ -205,11 +205,11 @@ func (r *ReconcileManager) applyNewEnvVar(deployment *v1.Deployment, newEnvs []c
 
 type applicationEnvVar map[string]func(r *ReconcileManager, cr *v1alpha1.EntandoAppV2) string
 
-type listApplicationEnvVar map[string]applicationEnvVar
+type mapApplicationEnvVar map[string]applicationEnvVar
 
-func (r *ReconcileManager) envVarByVersion(cr *v1alpha1.EntandoAppV2, mapEnv listApplicationEnvVar) []corev1.EnvVar {
-	var newAppEnvs []corev1.EnvVar = make([]corev1.EnvVar, 0)
-	if envs, ok := mapEnv[cr.Spec.Version]; ok {
+func (r *ReconcileManager) envVarByVersion(cr *v1alpha1.EntandoAppV2, upgradeVersionEnvMap mapApplicationEnvVar) []corev1.EnvVar {
+	newAppEnvs := make([]corev1.EnvVar, 0)
+	if envs, ok := upgradeVersionEnvMap[cr.Spec.Version]; ok {
 		for key, value := range envs {
 			newAppEnvs = append(newAppEnvs, corev1.EnvVar{Name: key, Value: value(r, cr)})
 		}
