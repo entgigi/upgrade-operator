@@ -517,6 +517,10 @@ spec:
                 description: 'ImageSetType is used to select the list of image to
                   use, the admitted values are: RedhatCertified or Community'
                 type: string
+              ingressHostName:
+                description: IngressHostName is the host name that Ingress uses to
+                  control access to the app
+                type: string
               k8sAppPluginLinkController:
                 description: Section used to configure legacy operator app-plugin-link-controller
                 properties:
@@ -1003,6 +1007,13 @@ spec:
                     description: used to override the component image
                     type: string
                 type: object
+              updateStrategy:
+                description: 'UpdateStrategy the strategy to apply during the upgrade
+                  of the deployments, the admitted values are: Recreate or RollingUpdate
+                  Recreate: deployments will be updated and scaled to 0, then they
+                  will be scaled up to 1 again RollingUpdate: deployments will be
+                  updated without scaling down to 0, trying to ensure 0 downtime'
+                type: string
               version:
                 description: Version is the field used to upgrade version of EntandoApp
                 type: string

@@ -3,6 +3,7 @@ package reconciliation
 import (
 	"context"
 	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
+	"github.com/entgigi/upgrade-operator.git/utils"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 )
@@ -19,8 +20,11 @@ func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image 
 
 	deployment = r.updateCommonDeploymentData(deployment,
 		image,
+		r.envVarByVersion(cr, componentManagerEnv),
 		cr.Spec.CommonEnvironmentVariables,
 		cr.Spec.ComponentManager.EnvironmentVariables)
+
+	deployment = utils.ManageUpdateStrategy(deployment, cr)
 
 	if err = r.Update(ctx, deployment); err != nil {
 		return err
@@ -32,4 +36,21 @@ func (r *ReconcileManager) reconcileComponentManager(ctx context.Context, image 
 	r.Log.Info("Finished ComponentManager reconciliation flow")
 
 	return nil
+}
+
+var componentManagerEnv = mapApplicationEnvVar{
+	"7.1.1": applicationEnvVar{
+		"ENTANDO_APP_HOST_NAME": calculateAppHostName,
+		"ENTANDO_APP_USE_TLS":   calculateAppTls,
+	},
+}
+
+func calculateAppHostName(r *ReconcileManager, cr *v1alpha1.EntandoAppV2) string {
+	return cr.Spec.IngressHostName
+}
+
+func calculateAppTls(r *ReconcileManager, cr *v1alpha1.EntandoAppV2) string {
+	// entando-operator-config
+	// entando.tls.secret.name
+	return "false"
 }

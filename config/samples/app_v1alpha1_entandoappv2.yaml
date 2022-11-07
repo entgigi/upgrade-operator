@@ -5,6 +5,8 @@ metadata:
 spec:
   version: 7.1.0
   entandoAppName: my-app
+  ingressHostName: test-fire.192.168.64.5.nip.io
+  updateStrategy: Recreate
   commonEnvironmentVariables:
     - name: CUSTOM_ENV
       value: test
