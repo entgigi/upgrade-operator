@@ -18,15 +18,19 @@ package controllers
 
 import (
 	"context"
-
+	v1 "github.com/entgigi/upgrade-operator.git/api/entando.org/v1"
 	v1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/controllers/reconciliation"
 	"github.com/go-logr/logr"
+	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 const (
@@ -38,8 +42,9 @@ const (
 type EntandoAppV2Reconciler struct {
 	// TODO centralize log variable into one single struct to embed
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log           logr.Logger
+	Scheme        *runtime.Scheme
+	statusUpdater *reconciliation.StatusUpdater
 }
 
 //+kubebuilder:rbac:groups=app.entando.org,resources=entandoappv2s,verbs=get;list;watch;create;update;patch;delete
@@ -51,6 +56,13 @@ type EntandoAppV2Reconciler struct {
 func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithName(controllerLogName)
 	log.Info("Start reconciling EntandoAppV2 custom resources")
+
+	// TODO: manager put here only for test
+	log.Info("namespacedname: ", "req.NamespacedName", req.NamespacedName, "req.Name", req.Name, "req.Namespace", req.Namespace)
+
+	manager := reconciliation.NewReconcileManager(r.Client, r.Log)
+	// TODO: remove hardcoded
+	r.updateReady(ctx, manager, client.ObjectKey{Name: "entando-app-v2-sample", Namespace: "ent"}, log)
 
 	entandoAppV2 := v1alpha1.EntandoAppV2{}
 	err := r.Client.Get(ctx, req.NamespacedName, &entandoAppV2)
@@ -74,10 +86,10 @@ func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, err
 	}
 
-	manager := reconciliation.NewReconcileManager(r.Client, r.Log)
-	if err = manager.MainReconcile(ctx, req); err != nil {
+	//manager := reconciliation.NewReconcileManager(r.Client, r.Log)
+	/*if err = manager.MainReconcile(ctx, req); err != nil {
 		return ctrl.Result{}, err
-	}
+	}*/
 
 	log.Info("Reconciled EntandoAppV2 custom resources")
 	return ctrl.Result{}, nil
@@ -92,7 +104,12 @@ func (r *EntandoAppV2Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		// FIXME! add filter on create for EntandoAppV2 cr
 		For(&v1alpha1.EntandoAppV2{}).
-		WithEventFilter(predicate.GenerationChangedPredicate{}). //solo modifiche a spec
+		Watches(&source.Kind{Type: &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{
+			Name: "quickstart-deployment"}}}, &handler.EnqueueRequestForOwner{
+			IsController: true,
+			OwnerType:    &v1.EntandoApp{},
+		}).
+		//WithEventFilter(predicate.GenerationChangedPredicate{}). //solo modifiche a spec
 		Complete(r)
 }
 
@@ -132,5 +149,31 @@ func (r *EntandoAppV2Reconciler) removeFinalizer(ctx context.Context, entandoApp
 			return err
 		}
 	}
+	return nil
+}
+
+func (r *EntandoAppV2Reconciler) updateReady(ctx context.Context, manager *reconciliation.ReconcileManager, ns types.NamespacedName, log logr.Logger) error {
+	// TODO: for each deploy
+	var readyDeApp bool = false
+	deployment := &appsv1.Deployment{}
+	r.Client.Get(ctx, client.ObjectKey{Name: "quickstart-deployment", Namespace: ns.Namespace}, deployment)
+	readyDeApp = deployment.Status.ReadyReplicas > 0 && deployment.Status.ReadyReplicas == deployment.Status.Replicas
+
+	// TODO: remove
+	log.Info("Get deployment quickstart: \n", "deploy", &deployment)
+	log.Info("Get Infos: \n", "readyReplicas:", deployment.Status.ReadyReplicas, "Replicas", deployment.Status.Replicas, "isReady", readyDeApp)
+
+	// TODO: update condition ready
+
+	var readyEntandoApp metav1.ConditionStatus = metav1.ConditionUnknown
+
+	if readyDeApp {
+		readyEntandoApp = metav1.ConditionTrue
+	} else {
+		readyEntandoApp = metav1.ConditionFalse
+	}
+
+	manager.StatusUpdater.SetReadyCondition(ctx, ns, readyEntandoApp)
+
 	return nil
 }

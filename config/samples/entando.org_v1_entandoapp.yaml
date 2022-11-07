@@ -1,0 +1,6 @@
+apiVersion: entando.org/v1
+kind: EntandoApp
+metadata:
+  name: entandoapp-sample
+spec:
+  # TODO(user): Add fields here

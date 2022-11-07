@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	entandoorgv1 "github.com/entgigi/upgrade-operator.git/api/entando.org/v1"
 	"os"
 	goruntime "runtime"
 
@@ -52,6 +53,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(csv.AddToScheme(scheme))
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
+	utilruntime.Must(entandoorgv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

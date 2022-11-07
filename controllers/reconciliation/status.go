@@ -44,12 +44,12 @@ func (su *StatusUpdater) SetReconcileStarted(ctx context.Context, key types.Name
 	cr, err := su.updateStatus(ctx, key, func(cr *v1alpha1.EntandoAppV2) {
 		cr.Status.Progress = 0
 		cr.Status.Total = total
-		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
+		/*meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
 			Type:    Ready,
 			Status:  metav1.ConditionFalse,
 			Reason:  CustomResourceChanged,
 			Message: "Reconciliation process started",
-		})
+		})*/
 		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
 			Type:    Succeeded,
 			Status:  metav1.ConditionUnknown,
@@ -67,12 +67,12 @@ func (su *StatusUpdater) SetReconcileStarted(ctx context.Context, key types.Name
 
 func (su *StatusUpdater) SetReconcileProcessingComponent(ctx context.Context, key types.NamespacedName, componentName string) (*v1alpha1.EntandoAppV2, error) {
 	cr, err := su.updateStatus(ctx, key, func(cr *v1alpha1.EntandoAppV2) {
-		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
+		/*meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
 			Type:    Ready,
 			Status:  metav1.ConditionFalse,
 			Reason:  CustomResourceChanged,
 			Message: "Processing " + componentName,
-		})
+		})*/
 		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
 			Type:    Succeeded,
 			Status:  metav1.ConditionUnknown,
@@ -90,12 +90,12 @@ func (su *StatusUpdater) SetReconcileProcessingComponent(ctx context.Context, ke
 
 func (su *StatusUpdater) SetReconcileSuccessfullyCompleted(ctx context.Context, key types.NamespacedName) (*v1alpha1.EntandoAppV2, error) {
 	cr, err := su.updateStatus(ctx, key, func(cr *v1alpha1.EntandoAppV2) {
-		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
+		/*meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
 			Type:    Ready,
 			Status:  metav1.ConditionTrue,
 			Reason:  Success,
 			Message: "Reconciliation process completed",
-		})
+		})*/
 		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
 			Type:    Succeeded,
 			Status:  metav1.ConditionTrue,
@@ -113,12 +113,12 @@ func (su *StatusUpdater) SetReconcileSuccessfullyCompleted(ctx context.Context, 
 
 func (su *StatusUpdater) SetReconcileFailed(ctx context.Context, key types.NamespacedName, reason string) (*v1alpha1.EntandoAppV2, error) {
 	cr, err := su.updateStatus(ctx, key, func(cr *v1alpha1.EntandoAppV2) {
-		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
+		/*meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
 			Type:    Ready,
 			Status:  metav1.ConditionTrue,
 			Reason:  reason,
 			Message: "Reconciliation process failed",
-		})
+		})*/
 		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
 			Type:    Succeeded,
 			Status:  metav1.ConditionFalse,
@@ -160,6 +160,23 @@ func (su *StatusUpdater) updateStatus(ctx context.Context, key types.NamespacedN
 			return err
 		}
 	})
+
+	return cr, err
+}
+
+func (su *StatusUpdater) SetReadyCondition(ctx context.Context, key types.NamespacedName, status metav1.ConditionStatus) (*v1alpha1.EntandoAppV2, error) {
+	cr, err := su.updateStatus(ctx, key, func(cr *v1alpha1.EntandoAppV2) {
+		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
+			Type:    Ready,
+			Status:  status,
+			Reason:  "TBD",
+			Message: "TBD",
+		})
+	})
+
+	if err != nil {
+		su.log.Error(err, "Unable to update EntandoAppV2's status")
+	}
 
 	return cr, err
 }

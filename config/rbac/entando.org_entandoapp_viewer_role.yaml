@@ -1,0 +1,20 @@
+# permissions for end users to view entandoapps.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: entandoapp-viewer-role
+rules:
+- apiGroups:
+  - entando.org
+  resources:
+  - entandoapps
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - entando.org
+  resources:
+  - entandoapps/status
+  verbs:
+  - get
