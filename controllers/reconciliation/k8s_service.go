@@ -27,7 +27,7 @@ func (r *ReconcileManager) reconcileK8sService(ctx context.Context, req ctrl.Req
 
 	deployment = r.updateCommonDeploymentData(deployment,
 		image,
-		r.envVarByVersion(cr, k8sServiceManagerEnv),
+		r.envVarByVersion(ctx, req, cr, k8sServiceManagerEnv),
 		cr.Spec.CommonEnvironmentVariables,
 		cr.Spec.K8sService.EnvironmentVariables)
 

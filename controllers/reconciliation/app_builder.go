@@ -20,7 +20,7 @@ func (r *ReconcileManager) reconcileAppBuilder(ctx context.Context, image string
 
 	deployment = r.updateCommonDeploymentData(deployment,
 		image,
-		r.envVarByVersion(cr, appBuilderManagerEnv),
+		r.envVarByVersion(ctx, req, cr, appBuilderManagerEnv),
 		cr.Spec.CommonEnvironmentVariables,
 		cr.Spec.AppBuilder.EnvironmentVariables)
 

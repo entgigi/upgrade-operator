@@ -203,15 +203,15 @@ func (r *ReconcileManager) applyVersionUpgradeEnvVars(deployment *v1.Deployment,
 	return deployment
 }
 
-type applicationEnvVar map[string]func(r *ReconcileManager, cr *v1alpha1.EntandoAppV2) string
+type applicationEnvVar map[string]func(ctx context.Context, req ctrl.Request, r *ReconcileManager, cr *v1alpha1.EntandoAppV2) string
 
 type mapApplicationEnvVar map[string]applicationEnvVar
 
-func (r *ReconcileManager) envVarByVersion(cr *v1alpha1.EntandoAppV2, upgradeVersionEnvMap mapApplicationEnvVar) []corev1.EnvVar {
+func (r *ReconcileManager) envVarByVersion(ctx context.Context, req ctrl.Request, cr *v1alpha1.EntandoAppV2, upgradeVersionEnvMap mapApplicationEnvVar) []corev1.EnvVar {
 	newAppEnvs := make([]corev1.EnvVar, 0)
 	if envs, ok := upgradeVersionEnvMap[cr.Spec.Version]; ok {
 		for key, value := range envs {
-			newAppEnvs = append(newAppEnvs, corev1.EnvVar{Name: key, Value: value(r, cr)})
+			newAppEnvs = append(newAppEnvs, corev1.EnvVar{Name: key, Value: value(ctx, req, r, cr)})
 		}
 	}
 	return newAppEnvs

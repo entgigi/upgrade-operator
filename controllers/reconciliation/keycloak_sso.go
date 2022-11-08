@@ -45,7 +45,7 @@ func (r *ReconcileManager) reconcileKeycloak(ctx context.Context, image string, 
 
 		deployment = r.updateCommonDeploymentData(deployment,
 			image,
-			r.envVarByVersion(cr, keycloakManagerEnv),
+			r.envVarByVersion(ctx, req, cr, keycloakManagerEnv),
 			cr.Spec.CommonEnvironmentVariables,
 			cr.Spec.Keycloak.EnvironmentVariables)
 
