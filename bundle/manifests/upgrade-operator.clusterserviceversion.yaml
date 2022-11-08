@@ -63,7 +63,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    operators.operatorframework.io/builder: operator-sdk-v1.24.0
+    operators.operatorframework.io/builder: operator-sdk-v1.23.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
   name: upgrade-operator.v0.0.1
   namespace: placeholder
@@ -91,6 +91,14 @@ spec:
     spec:
       clusterPermissions:
       - rules:
+        - apiGroups:
+          - '*'
+          resources:
+          - configmaps
+          verbs:
+          - get
+          - list
+          - watch
         - apiGroups:
           - '*'
           resources:

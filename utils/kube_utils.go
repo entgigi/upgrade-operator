@@ -91,14 +91,17 @@ func FindDeploymentsByLabels(ctx context.Context, kubeClient client.Client, labe
 func ManageUpdateStrategy(deployment *appsv1.Deployment, cr *v1alpha1.EntandoAppV2) *appsv1.Deployment {
 	// TODO decide if move this function into an app scoped utils file
 
-	if cr.Spec.UpdateStrategy == common.RecreateStrategy {
-		maxUnavailable := intstr.FromString("100%")
-		maxSurge := intstr.FromString("0%")
+	maxUnavailable := intstr.FromString("100%")
+	maxSurge := intstr.FromString("0%")
 
-		deployment.Spec.Strategy.RollingUpdate = &appsv1.RollingUpdateDeployment{
-			MaxUnavailable: &maxUnavailable,
-			MaxSurge:       &maxSurge,
-		}
+	if cr.Spec.UpdateStrategy == common.RollingUpdateStrategy {
+		maxUnavailable = intstr.FromString("25%")
+		maxSurge = intstr.FromString("25%")
+	}
+
+	deployment.Spec.Strategy.RollingUpdate = &appsv1.RollingUpdateDeployment{
+		MaxUnavailable: &maxUnavailable,
+		MaxSurge:       &maxSurge,
 	}
 
 	return deployment

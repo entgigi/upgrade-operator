@@ -19,7 +19,7 @@ func (r *ReconcileManager) reconcileDeApp(ctx context.Context, image string, req
 
 	deployment = r.updateCommonDeploymentData(deployment,
 		image,
-		r.envVarByVersion(cr, deAppManagerEnv),
+		r.envVarByVersion(ctx, req, cr, deAppManagerEnv),
 		cr.Spec.CommonEnvironmentVariables,
 		cr.Spec.DeApp.EnvironmentVariables)
 
