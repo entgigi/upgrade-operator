@@ -49,6 +49,8 @@ func (r *ReconcileManager) reconcileKeycloak(ctx context.Context, image string, 
 			cr.Spec.CommonEnvironmentVariables,
 			cr.Spec.Keycloak.EnvironmentVariables)
 
+		deployment = utils.ManageUpdateStrategy(deployment, cr)
+
 		if err := r.Update(ctx, deployment); err != nil {
 			return err
 		}
