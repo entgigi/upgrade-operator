@@ -77,6 +77,29 @@ make manifests
 
 More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
 
+## Operative procedures
+
+### PLAIN
+
+- make generate manifests IMG="lcorsettientando/upgrade-operator:v0.0.1"
+- EDIT manager.yaml ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE in Plain
+- make docker-build docker-push IMG="lcorsettientando/upgrade-operator:v0.0.1"
+- make deploy IMG="lcorsettientando/upgrade-operator:v0.0.1"
+
+
+### OLM
+
+- make generate manifests IMG="lcorsettientando/upgrade-operator:v0.0.1"
+- EDIT manager.yaml ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE in OLM
+- make bundle IMG="lcorsettientando/upgrade-operator:v0.0.1"
+- make bundle-build bundle-push BUNDLE_IMG="lcorsettientando/upgrade-operator-bundle:v0.0.1"
+#### to install
+- operator-sdk run bundle -n test-fire docker.io/lcorsettientando/upgrade-operator-bundle:v0.0.1
+#### to uninstall
+- operator-sdk cleanup -n test-fire upgrade-operator
+
+
+
 ## License
 
 Copyright 2022.
