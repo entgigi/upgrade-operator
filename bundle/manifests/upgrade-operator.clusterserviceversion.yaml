@@ -11,54 +11,9 @@ metadata:
             "name": "entando-app-v2-sample"
           },
           "spec": {
-            "appBuilder": {
-              "environmentVariables": [
-                {
-                  "name": "CUSTOM_ENV",
-                  "value": "test"
-                }
-              ]
-            },
-            "commonEnvironmentVariables": [
-              {
-                "name": "CUSTOM_ENV",
-                "value": "test"
-              },
-              {
-                "name": "TO_OVERRIDE_1",
-                "value": "SUCCESS"
-              }
-            ],
-            "componentManager": {
-              "environmentVariables": [
-                {
-                  "name": "CUSTOM_ENV_CM",
-                  "value": "test"
-                },
-                {
-                  "name": "TO_OVERRIDE_1",
-                  "value": "SUCCESS_1_CM"
-                }
-              ],
-              "imageOverride": "entando/entando-component-manager:7.1.1"
-            },
             "entandoAppName": "my-app",
-            "ingressHostName": "test-fire.192.168.64.5.nip.io",
-            "keycloak": {
-              "environmentVariables": [
-                {
-                  "name": "CUSTOM_ENV_KC",
-                  "value": "test_ks"
-                },
-                {
-                  "name": "TO_OVERRIDE_1",
-                  "value": "SUCCESS_1_KC"
-                }
-              ],
-              "externalService": false
-            },
-            "updateStrategy": "Recreate",
-            "version": "7.1.0"
+            "imageSetType": "RedhatCertified",
+            "version": "7.1.1"
           }
         }
       ]

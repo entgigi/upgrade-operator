@@ -1,0 +1,36 @@
+apiVersion: app.entando.org/v1alpha1
+kind: EntandoAppV2
+metadata:
+  name: entando-app-v2-sample
+spec:
+  version: 7.1.1
+  imageSetType: Community
+  entandoAppName: my-app
+  ingressHostName: test-fire.apps.okd4-10.awsentando.net
+  updateStrategy: Recreate
+  commonEnvironmentVariables:
+    - name: CUSTOM_ENV
+      value: test
+    - name: TO_OVERRIDE_1
+      value: SUCCESS
+  appBuilder:
+    environmentVariables:
+      - name: CUSTOM_ENV
+        value: test
+    imageOverride: "registry.hub.docker.com/entando/app-builder:7.1.1-ENG-4277-PR-1413"
+  componentManager:
+    environmentVariables:
+      - name: CUSTOM_ENV_CM
+        value: test
+      - name: TO_OVERRIDE_1
+        value: SUCCESS_1_CM
+    imageOverride: "registry.hub.docker.com/entando/entando-component-manager:7.1.1"
+  keycloak:
+    environmentVariables:
+      - name: CUSTOM_ENV_KC
+        value: test_ks
+      - name: TO_OVERRIDE_1
+        value: SUCCESS_1_KC
+    externalService: false
+  deApp:
+    environmentVariables: {}
