@@ -18,15 +18,18 @@ package controllers
 
 import (
 	"context"
-
-	v1alpha1 "github.com/entgigi/upgrade-operator.git/api/v1alpha1"
+	"github.com/entgigi/upgrade-operator.git/api/v1alpha1"
 	"github.com/entgigi/upgrade-operator.git/controllers/reconciliation"
+	"github.com/entgigi/upgrade-operator.git/utils"
 	"github.com/go-logr/logr"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 const (
@@ -51,13 +54,56 @@ type EntandoAppV2Reconciler struct {
 
 func (r *EntandoAppV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithName(controllerLogName)
-	log.Info("Start reconciling EntandoAppV2 custom resources")
+	log.Info("Start reconciling EntandoAppV2 custom resources", "req", req)
 
 	entandoAppV2 := v1alpha1.EntandoAppV2{}
+	deployment := appsv1.Deployment{}
 	err := r.Client.Get(ctx, req.NamespacedName, &entandoAppV2)
-	if err != nil {
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+	err2 := r.Client.Get(ctx, req.NamespacedName, &deployment)
+
+	if err2 == nil {
+		log.Info("is a deployment")
+		// are all deployment ready?
+		list := []string{"default-sso-in-namespace-deployment", "quickstart-ab-deployment", "quickstart-cm-deployment", "quickstart-deployment"}
+		counter := 0
+		for _, componentname := range list {
+
+			r.Client.Get(ctx, types.NamespacedName{
+				Namespace: req.Namespace,
+				Name:      componentname,
+			}, &deployment)
+
+			//log.Info("deployment", "deployment", deployment)
+			// idx := slices.IndexFunc(deployment.Status.Conditions, func(c appsv1.DeploymentCondition) bool { return c.Type == "Available" && c.Status == "True" })
+			if deployment.Status.ReadyReplicas > 0 {
+				counter++
+			}
+			log.Info("ReadyReplicas has value", "deployment.Status.ReadyReplicas", deployment.Status.ReadyReplicas)
+		}
+		log.Info("counter has value", "counter", counter)
+		if counter == 4 {
+			statusUpdater := reconciliation.NewStatusUpdater(r.Client, r.Log)
+			statusUpdater.SetReady(ctx, types.NamespacedName{
+				Namespace: req.Namespace,
+				Name:      "entando-app-v2-sample",
+			})
+		} else {
+			statusUpdater := reconciliation.NewStatusUpdater(r.Client, r.Log)
+			statusUpdater.SetNotReady(ctx, types.NamespacedName{
+				Namespace: req.Namespace,
+				Name:      "entando-app-v2-sample",
+			})
+		}
+
+		return ctrl.Result{}, nil
+
+	} else {
+		log.Info("is a CR")
 	}
+
+	/*if err != nil  {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}*/
 
 	// Check if the EntandoApp instance is marked to be deleted, which is
 	// indicated by the deletion timestamp being set.
@@ -92,8 +138,10 @@ func (r *EntandoAppV2Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 	//log := r.Log.WithName("Upgrade Controller")
 	return ctrl.NewControllerManagedBy(mgr).
 		// FIXME! add filter on create for EntandoAppV2 cr
-		For(&v1alpha1.EntandoAppV2{}).
-		WithEventFilter(predicate.GenerationChangedPredicate{}). //solo modifiche a spec
+		For(&v1alpha1.EntandoAppV2{}, utils.ForOptionCustom()).
+		Watches(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForObject{}).
+		//WithEventFilter(predicate.GenerationChangedPredicate{}). //solo modifiche a spec
+		//Watches(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForObject{}).
 		Complete(r)
 }
 

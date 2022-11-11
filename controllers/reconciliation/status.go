@@ -16,8 +16,9 @@ const (
 	statusUpdaterLogName = "StatusUpdater"
 
 	// Condition Types
-	Ready     = "Ready"
-	Succeeded = "Succeeded"
+	Ready       = "Ready"
+	Succeeded   = "Succeeded"
+	Initialized = "Initialized"
 
 	// Condition Reasons
 	CustomResourceChanged = "CustomResourceChanged"
@@ -142,6 +143,63 @@ func (su *StatusUpdater) IncrementProgress(ctx context.Context, key types.Namesp
 
 	if err != nil {
 		su.log.Error(err, "Unable to update EntandoAppV2's progress status", "progress", cr.Status.Progress)
+	}
+
+	return cr, err
+}
+
+func (su *StatusUpdater) SetInitialized(ctx context.Context, key types.NamespacedName) (*v1alpha1.EntandoAppV2, error) {
+	cr, err := su.updateStatus(ctx, key, func(cr *v1alpha1.EntandoAppV2) {
+		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
+			Type:    Initialized,
+			Status:  metav1.ConditionTrue,
+			Reason:  "ImageWritten",
+			Message: "Image written in components",
+		})
+	})
+
+	if err != nil {
+		su.log.Error(err, "Unable to update EntandoAppV2's status for reconciliation initialized")
+	}
+
+	return cr, err
+}
+
+func (su *StatusUpdater) SetReady(ctx context.Context, key types.NamespacedName) (*v1alpha1.EntandoAppV2, error) {
+	cr, err := su.updateStatus(ctx, key, func(cr *v1alpha1.EntandoAppV2) {
+		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
+			Type:    Ready,
+			Status:  metav1.ConditionTrue,
+			Reason:  "Ready",
+			Message: "All components are Ready",
+		})
+		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
+			Type:    Initialized,
+			Status:  metav1.ConditionFalse,
+			Reason:  "ReconciliationDone",
+			Message: "Reconciliation process success",
+		})
+	})
+
+	if err != nil {
+		su.log.Error(err, "Unable to update EntandoAppV2's status for reconciliation initialized")
+	}
+
+	return cr, err
+}
+
+func (su *StatusUpdater) SetNotReady(ctx context.Context, key types.NamespacedName) (*v1alpha1.EntandoAppV2, error) {
+	cr, err := su.updateStatus(ctx, key, func(cr *v1alpha1.EntandoAppV2) {
+		meta.SetStatusCondition(&cr.Status.Conditions, metav1.Condition{
+			Type:    Ready,
+			Status:  metav1.ConditionFalse,
+			Reason:  "Ready",
+			Message: "All components are not Ready",
+		})
+	})
+
+	if err != nil {
+		su.log.Error(err, "Unable to update EntandoAppV2's status for reconciliation initialized")
 	}
 
 	return cr, err
