@@ -15,7 +15,12 @@ spec:
     singular: entandoappv2
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: state of EntandoApp
+      jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: An EntandoAppV2 deploys the components required to upgrade an
